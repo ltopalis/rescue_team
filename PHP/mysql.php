@@ -15,7 +15,29 @@ if (isset($_POST['login_username']) && isset($_POST['login_password'])) {
     $result = $mysqli->query("SELECT @name, @role, @info");
 
     $row = $result->fetch_assoc();
-    echo $row['@name'] . " | " . $row["@role"] . " | " . $row['@info'];
+
+    if ($row["@info"] == "UNKNOWN_USER")
+        echo
+            '<div class="alert alert-danger" role="alert" id="alert">
+                O xρήστης δεν υπάρχει. Κάνε δωρεάν εγγραφή!
+            </div>';
+    else if ($row['@info'] == 'WRONG_USERNAME')
+        echo
+            '<div class="alert alert-danger" role="alert" id="alert">
+                To όνομα χρήστη είναι λάθος!
+            </div>';
+    else if ($row['@info'] == 'WRONG_PASSWORD')
+        echo
+            '<div class="alert alert-danger" role="alert" id="alert">
+                Ο κωδικός πρόσβασης είναι λάθος!
+            </div>';
+    else if ($row['@info'] == 'SUCCESS') {
+        $data = array('name' => $row['@name'], 'role' => $row['@role']);
+        echo json_encode($data);
+    }
+    // In case of debugging
+    else
+        echo $row['@name'] . " | " . $row["@role"] . " | " . $row['@info'];
 }
 
 if (isset($_POST['signup_username']) && isset($_POST['signup_password']) && isset($_POST['signup_name'])) {
@@ -32,25 +54,28 @@ if (isset($_POST['signup_username']) && isset($_POST['signup_password']) && isse
             $role = "RESCUER";
 
         $query = "CALL ADD_USER('" . $username . "','" . $password . "', '" . $name . "', '" . $role . "')";
-        $result = $result = $mysqli->query($query);
+        $result = $mysqli->query($query);
 
-        echo $result;
+        if ($result = 1)
+            echo
+                '<div class="alert alert-success" role="alert">
+                Η εγγραφή πραγματοποιήθηκε με επιτυχία!
+            </div>';
+        else
+            echo
+                '<div class="alert alert-error" role="alert">
+                Προκλήθηκε άγνωστο σφάλμα. Ξαναδοκιμάστε!
+            </div>';
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1062) {
-            echo 
-            '<div class="alert alert-danger" role="alert">
+            echo
+                '<div class="alert alert-danger" role="alert">
                 O xρήστης υπάρχει ήδη. Δοκιμάστε κάποιο άλλο όνομα χρήστη.
             </div>';
         } else
             echo $e->getMessage() . " " . $e->getCode();
     }
-
-
-    // $row = $result->fetch_assoc();
-    // echo $row['@name'] . " | " . $row["@role"] ." | ". $row['@info'];     
 }
-
-
 
 $mysqli->close();
 ?>

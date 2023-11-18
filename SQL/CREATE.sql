@@ -26,7 +26,7 @@ BEGIN
     WHERE USERNAME = check_username;
     
     IF return_username IS NULL THEN
-		SET info = "UNKWON_USER";
+		SET info = "UNKNOWN_USER";
 	ELSEIF check_password is NULL THEN
         SET info = "WRONG_USERNAME";
 	ELSEIF check_password != return_password THEN
