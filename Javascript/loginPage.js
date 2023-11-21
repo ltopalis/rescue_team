@@ -1,7 +1,8 @@
 "use strict"
 
-// Κάτι σαν κλάση, αλλά δεν είναι κλάση. Είναι σαν-κλάση
-let user = { };
+let user = JSON.parse(localStorage.getItem("user"));
+if(user.role !== null && user.role !== undefined)
+window.location.replace('http://localhost/Project/map.html');
 
 function selectRole(role) {
     document.getElementById('selectedRole').value = role;
@@ -32,12 +33,18 @@ function submitLogin(){
     }).then(response => response.json())
     .then(
         data => {
-            // TODO: Μήνυμα σφάλματος ανάλογα με το info
-            console.log("Name: " + data.name);
-            console.log("Role: " + data.role);
-            console.log("Info: " + data.info);
-            user.name = data.user;
-            user.role = data.role;
+            if(data.info === "UNKNOWN_USER"){
+                console.log("UNKNOWN_USER");
+            }else if(data.info === "WRONG_USERNAME"){
+                console.log("WRONG_USERNAME");
+            }else if(data.info === "SUCCESS"){
+                user.name = data.name;
+                user.role = data.role;
+                localStorage.setItem("user", JSON.stringify(user));
+                window.location.replace('http://localhost/Project/map.html');
+            }else{
+                console.log("Unexpected Error!");
+            }
         }
     )
     .catch(error => console.error("Error:", error));
