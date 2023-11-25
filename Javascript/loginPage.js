@@ -41,7 +41,11 @@ function submitLogin(){
                 user.name = data.name;
                 user.role = data.role;
                 localStorage.setItem("user", JSON.stringify(user));
-                window.location.replace('http://localhost/Project/map.html');
+
+                if(user.role === "ADMIN")
+                    window.location.replace('http://localhost/Project/adminPage.html');
+                else
+                    window.location.replace('http://localhost/Project/map.html');
             }else{
                 console.log("Unexpected Error!");
             }
