@@ -1,6 +1,6 @@
 "use strict"
 
-let user = JSON.parse(localStorage.getItem("user")) | { };
+let user = JSON.parse(localStorage.getItem("user"));
 if(user.role !== null && user.role !== undefined)
 window.location.replace('http://localhost/Project/map.html');
 
