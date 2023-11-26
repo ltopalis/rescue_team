@@ -69,8 +69,8 @@
                     <form id="signup-form">
                         <div class="mb-4 input-group">
                             <span class="input-group-text"><i class="bi bi-file-person-fill"></i></span>
-                            <input type="text" class="form-control" name="signup_name" id="signup_name" placeholder="Όνομα"
-                                required>
+                            <input type="text" class="form-control" name="signup_name" id="signup_name"
+                                placeholder="Όνομα" required>
                         </div>
 
                         <div class="mb-4 input-group">
@@ -83,6 +83,13 @@
                             <span class="input-group-text"><i class="bi bi-key"></i></span>
                             <input type="password" class="form-control" name="signup_password" id="signup_password"
                                 placeholder="Κωδικός Πρόσβασης" required>
+                        </div>
+
+                        <div class="mb-4 text-center"><a href="#" onclick="showSection('login-page')">Έχεις λογαριασμό;
+                                Συνδέσου!</a></div>
+
+                        <div class="mb-4 text-center">
+                            <button type="button" class="btn btn-secondary" onclick="submitSignup()">Εγγραφή</button>
                         </div>
                     </form>
 

@@ -47,7 +47,7 @@ function submitLogin(){
                 else
                     window.location.replace('http://localhost/Project/map.html');
             }else{
-                console.log("Unexpected Error!");
+                console.log(`Unexpected Error! - ${data.info}`);
             }
         }
     )

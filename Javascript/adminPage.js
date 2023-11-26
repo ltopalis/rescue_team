@@ -28,8 +28,6 @@ function addRescuer(){
     )
     .catch(error => console.error("Error:", error));
 
-
-
     console.log(phone, password, name);
 }
 
