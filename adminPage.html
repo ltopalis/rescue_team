@@ -62,27 +62,29 @@
             <div class="row justify-content-center my-5">
 
                 <div class="col-lg-6">
-                    <form>
+                    <form id="add-rescuer-form">
                         <label for="rescuer_telephone" class="form-label">Τηλέφωνο επικοινωνίας:</label>
                         <div class="mb-4 input-group">
                             <span class="input-group-text"><i class="bi bi-phone-fill"></i></span>
-                            <input type="tel" name="rescuer_username" id="rescuer_telephone" class="form-control">
+                            <input type="tel" name="rescuer_username" id="rescuer_telephone" class="form-control" required>
                         </div>
 
                         <label for="rescuer_password" class="form-label">Κωδικός Πρόσβασης:</label>
                         <div class="mb-4 input-group">
                             <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
-                            <input type="password" name="rescuer_password" id="rescuer_password" class="form-control">
+                            <input type="password" name="rescuer_password" id="rescuer_password" class="form-control" required>
                         </div>
 
                         <label for="rescuer_name" class="form-label">Όνομα:</label>
                         <div class="mb-4 input-group">
                             <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
-                            <input type="text" name="rescuer_name" id="rescuer_name" class="form-control">
+                            <input type="text" name="rescuer_name" id="rescuer_name" class="form-control" required>
                         </div>
 
+                        <div class="alert" id="add-rescuer-alert" role="alert"></div>
+
                         <div class="mb-4 text-center">
-                            <button type="button" class="btn btn-secondary" onclick="addRescuer()">Εγγραφή</button>
+                            <button type="submit" class="btn btn-secondary">Εγγραφή</button>
                         </div>
                     </form>
                 </div>

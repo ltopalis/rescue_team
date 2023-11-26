@@ -4,7 +4,6 @@ try {
     $username = $_POST['signup_username'];
     $password = $_POST['signup_password'];
     $name = $_POST['signup_name'];
-    $role = $_POST['signup_role'];
 
     $query = "CALL ADD_USER('" . $username . "','" . $password . "', '" . $name . "', 'CITIZEN', 0, 0)";
     $result = $conn->query($query);
