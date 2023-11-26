@@ -64,7 +64,6 @@ function submitSignup(){
     data.append("signup_name", name);
     data.append("signup_username", username);
     data.append("signup_password", password);
-    data.append("signup_role", role);
 
     fetch("/Project/PHP/call_add_user.php", {
         method: "POST",

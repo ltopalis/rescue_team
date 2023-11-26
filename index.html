@@ -84,29 +84,6 @@
                             <input type="password" class="form-control" name="signup_password" id="signup_password"
                                 placeholder="Κωδικός Πρόσβασης" required>
                         </div>
-
-                        <div class="dropdown">
-                            <button class="btn btn-secondary dropdown-toggle" type="button" id="roleDropdown"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                Πολίτης
-                            </button>
-
-                            <ul class="dropdown-menu" aria-labelledby="roleDropdown">
-                                <li><a class="dropdown-item" href="#" onclick="selectRole('Διασώστης')">Διασώστης</a>
-                                </li>
-                                <li><a class="dropdown-item" href="#" onclick="selectRole('Πολίτης')">Πολίτης</a></li>
-                            </ul>
-
-                            <!-- Hidden Input for Selected Role -->
-                            <input type="hidden" id="selectedRole" name="selectedRole" value="Πολίτης" required>
-
-
-                            <div class="mb-4 text-center"><a href="#" onclick="showSection('login-page')">Έχεις
-                                    Λογαριασμό; Συνδέσου!</a></div>
-
-                            <div class="mb-4 text-center">
-                                <button type="button" onclick="submitSignup()" class="btn btn-secondary">Εγγραφή</button>
-                            </div>
                     </form>
 
                 </div>

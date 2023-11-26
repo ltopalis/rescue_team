@@ -7,6 +7,13 @@ CREATE TABLE IF NOT EXISTS USERS(
                                 PASSWORD VARCHAR(50) NOT NULL,
                                 NAME VARCHAR(50) NOT NULL,
                                 ROLE ENUM('RESCUER', 'ADMIN', 'CITIZEN') NOT NULL);
+                                
+CREATE TABLE IF NOT EXISTS LOCATIONS(
+									USER VARCHAR(50) NOT NULL PRIMARY KEY,
+                                    LONGTITUDE FLOAT8,
+                                    LATITUDE FLOAT8,
+                                    
+                                    FOREIGN KEY (USER) REFERENCES USERS(USERNAME));
 
 DELIMITER $$
 CREATE PROCEDURE CHECK_USER(
@@ -45,13 +52,40 @@ CREATE PROCEDURE ADD_USER(
                         IN USERNAME VARCHAR(50),
                         IN PASSWORD VARCHAR(50),
                         IN NAME VARCHAR(50),
-                        IN ROLE ENUM('RESCUER', 'ADMIN', 'CITIZEN'))
+                        IN ROLE ENUM('RESCUER', 'ADMIN', 'CITIZEN'),
+                        IN LONGTITUDE FLOAT8,
+                        IN LATITUDE FLOAT8)
 BEGIN
     INSERT INTO USERS VALUE (USERNAME, PASSWORD, NAME, ROLE);
+    INSERT INTO LOCATIONS VALUES(USERNAME, LONGTITUDE, LATITUDE);
 END $$
 DELIMITER ;
 
--- CALL ADD_USER("test1", "testpass", "test", "admin"); 
+INSERT INTO USERS VALUE ('ADMIN', "ADMIN", "ADMIN", "ADMIN"); -- THE COORDINATES OF ADMIN REPRESENT THE COORDINATES OF WAREHOUSE 
+INSERT INTO LOCATIONS VALUE ('ADMIN', 23.735404014587406, 37.97586815961329);
+
+--  TRIGGERS
+
+DELIMITER $$
+CREATE TRIGGER addCoordinates
+BEFORE INSERT ON LOCATIONS
+FOR EACH ROW
+	BEGIN
+    DECLARE LAT FLOAT8;
+    DECLARE LNG FLOAT8;
+    
+    SELECT LATITUDE, LONGTITUDE INTO LAT, LNG
+    FROM LOCATIONS
+    WHERE USER = 'ADMIN';
+    
+    SET NEW.LONGTITUDE = LNG + 100;
+    SET NEW.LATITUDE = LAT + 100;    
+    
+    END$$
+
+DELIMITER ;
+
+-- CALL ADD_USER("test", "test", "test", "citizen"); 
 
 
 -- SELECT * FROM USERS;

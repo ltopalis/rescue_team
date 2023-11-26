@@ -1,12 +1,12 @@
 <?php
-include './connect_db.php';
-try {
-    $username = $_POST['signup_username'];
-    $password = $_POST['signup_password'];
-    $name = $_POST['signup_name'];
-    $role = $_POST['signup_role'];
 
-    $query = "CALL ADD_USER('" . $username . "','" . $password . "', '" . $name . "', 'CITIZEN', 0, 0)";
+include("./connect_db.php");
+try {
+    $phone = $_POST["phone"];
+    $password = $_POST["password"];
+    $name = $_POST["name"];
+
+    $query = "CALL ADD_USER('" . $phone . "','" . $password . "','" . $name . "','" . "RESCUER', 0, 0)";
     $result = $conn->query($query);
 
     if ($result = 1)
