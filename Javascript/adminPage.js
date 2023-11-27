@@ -1,6 +1,6 @@
 "use strict"
 
-let user = JSON.parse(localStorage.getItem("user")) | { };
+let user = JSON.parse(localStorage.getItem("user")) || { };
 if(user.role === null || user.role === undefined)
     window.location.replace('http://localhost/Project/');
 else if(user.role !== "ADMIN")
@@ -10,8 +10,6 @@ const add_rescuer_form = document.getElementById("add-rescuer-form");
 
 add_rescuer_form.addEventListener("submit", (e) => {
     e.preventDefault();
-
-    console.log("INSIDE");
 
     const phone = document.getElementById("rescuer_telephone").value;
     const password = document.getElementById("rescuer_password").value;
@@ -31,12 +29,23 @@ add_rescuer_form.addEventListener("submit", (e) => {
         document.getElementById("add-rescuer-alert").classList.remove("alert-success");
 
         document.getElementById("add-rescuer-alert").innerHTML = messages.join(", ");
+
+        setTimeout( function() {
+            document.getElementById("add-rescuer-alert").classList.remove("alert-danger");
+            document.getElementById("add-rescuer-alert").classList.remove("alert-success");
+            document.getElementById("add-rescuer-alert").innerHTML = "";
+        }, time_until_a_message_fade_out);
     }
     else{
+        
+        const location = calculate_the_position();
+
         let data = new FormData();
         data.append("phone", phone);
         data.append("password", password);
         data.append("name", name);
+        data.append("longtitude", location[1]);
+        data.append("latitude", location[0]);
 
         fetch("/Project/PHP/addRescuer.php", {
             method: "POST",
@@ -44,14 +53,14 @@ add_rescuer_form.addEventListener("submit", (e) => {
         }).then(response => response.json())
         .then(
             data => {
-                document.getElementById("add-rescuer-alert").classList.add("alert-danger");
+                document.getElementById("add-rescuer-alert").classList.remove("alert-danger");
                 document.getElementById("add-rescuer-alert").classList.remove("alert-success");
                 switch(data){
                     case "SUCCESS":
                         document.getElementById("add-rescuer-alert").classList.add("alert-success");
                         document.getElementById("add-rescuer-alert").innerHTML = "Η εγγραφή πραγματοποιήθηκε με επιτυχία!";
                         
-                        for(let elem of signup_form.elements)
+                        for(let elem of add_rescuer_form.elements)
                             elem.value = "";
                         break;
                     case "DUPLICATE_ENTRY":
@@ -63,15 +72,13 @@ add_rescuer_form.addEventListener("submit", (e) => {
                         document.getElementById("add-rescuer-alert").innerHTML = "Συνέβη κάποιο σφάλμα. Προσπαθήστε ξανά";
                         break;
                 }
+                setTimeout( function() {
+                    document.getElementById("add-rescuer-alert").classList.remove("alert-danger");
+                    document.getElementById("add-rescuer-alert").classList.remove("alert-success");
+                    document.getElementById("add-rescuer-alert").innerHTML = "";
+                }, time_until_a_message_fade_out);
             }
         )
         .catch(error => console.error("Error:", error));
     }
 });
-
-function logout(){
-    delete user.name;
-    delete user.role;
-    localStorage.setItem("user", JSON.stringify(user));
-    window.location.replace("http://localhost/Project/");
-}

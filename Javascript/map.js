@@ -19,7 +19,7 @@ const person = L.icon({
     popupAnchor: [1, -20]
 });
 
-const user = JSON.parse(localStorage.getItem("user"));
+const user = JSON.parse(localStorage.getItem("user")) || { };
 if(user.role === null || user.role === undefined)
     window.location.replace('http://localhost/Project/');
 
@@ -68,9 +68,4 @@ markers[1].bindPopup('ΦΟΡΤΗΓΟ 1');
 markers[2].bindPopup('ΦΟΡΤΗΓΟ 2');
 markers[0].bindPopup('ΠΡΟΙΟΝ 1');
 
-function logout(){
-    delete user.name;
-    delete user.role;
-    localStorage.setItem("user", JSON.stringify(user));
-    window.location.replace("http://localhost/Project/");
-}
+

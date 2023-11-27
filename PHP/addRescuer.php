@@ -5,8 +5,10 @@ try {
     $phone = $_POST["phone"];
     $password = $_POST["password"];
     $name = $_POST["name"];
+    $lat = $_POST["latitude"];
+    $lng = $_POST["longtitude"];
 
-    $query = "CALL ADD_USER('" . $phone . "','" . $password . "','" . $name . "','" . "RESCUER', 0, 0)";
+    $query = "CALL ADD_USER('" . $phone . "','" . $password . "','" . $name . "','RESCUER'," . $lng . " , " . $lat . ")";
     $result = $conn->query($query);
 
     if ($result = 1)

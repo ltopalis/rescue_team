@@ -1,11 +1,13 @@
 <?php
 include './connect_db.php';
 try {
-    $username = $_POST['signup_username'];
+    $phone = $_POST['signup_username'];
     $password = $_POST['signup_password'];
     $name = $_POST['signup_name'];
+    $lat = $_POST["latitude"];
+    $lng = $_POST["longtitude"];
 
-    $query = "CALL ADD_USER('" . $username . "','" . $password . "', '" . $name . "', 'CITIZEN', 0, 0)";
+    $query = "CALL ADD_USER('" . $phone . "','" . $password . "','" . $name . "','CITIZEN'," . $lng . " , " . $lat . ")";
     $result = $conn->query($query);
 
     if ($result = 1)

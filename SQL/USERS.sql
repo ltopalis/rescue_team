@@ -21,16 +21,32 @@ CREATE PROCEDURE CHECK_USER(
 							IN check_password VARCHAR(50), 
                             OUT checked_name VARCHAR(50),
                             OUT checked_role VARCHAR(50),
+                            OUT checked_longtitude FLOAT8,
+                            OUT checked_latitude FLOAT8,
+                            OUT checked_warehouse_longtitude FLOAT8,
+                            OUT checked_warehouse_latitude FLOAT8,
                             OUT info VARCHAR(50))
 BEGIN
 	DECLARE return_name VARCHAR(50) DEFAULT NULL;
     DECLARE return_role VARCHAR(50) DEFAULT NULL;
     DECLARE return_password VARCHAR(50) DEFAULT NULL;
     DECLARE return_username VARCHAR(50);
-	
-    SELECT USERNAME, PASSWORD, NAME, ROLE INTO return_username, return_password, return_name, return_role 
-    FROM USERS
-    WHERE USERNAME = check_username;
+	DECLARE return_longtitude FLOAT8;
+    DECLARE return_latitude FLOAT8;
+    
+    DECLARE return_warehouse_latitude FLOAT8;
+    DECLARE return_warehouse_longtitude FLOAT8;
+    
+    SELECT USERNAME, PASSWORD, NAME, ROLE, LONGTITUDE, LATITUDE 
+		INTO return_username, return_password, return_name, return_role, return_longtitude, return_latitude
+    FROM USERS JOIN LOCATIONS
+		ON USERS.USERNAME = LOCATIONS.USER
+    WHERE USERS.USERNAME = check_username;
+    
+    SELECT LONGTITUDE, LATITUDE 
+		INTO return_warehouse_longtitude, return_warehouse_latitude
+	FROM LOCATIONS
+    WHERE USER = "ADMIN";
     
     IF return_username IS NULL THEN
 		SET info = "UNKNOWN_USER";
@@ -44,6 +60,10 @@ BEGIN
 		SET info = "SUCCESS";
         SET checked_name = return_name;
         SET checked_role = return_role;
+        SET checked_longtitude = return_longtitude;
+        SET checked_latitude = return_latitude;
+        SET checked_warehouse_longtitude = return_warehouse_longtitude;
+        SET checked_warehouse_latitude = return_warehouse_latitude;
 	END IF;
         
 END $$
@@ -56,9 +76,14 @@ CREATE PROCEDURE ADD_USER(
                         IN LONGTITUDE FLOAT8,
                         IN LATITUDE FLOAT8)
 BEGIN
+	START TRANSACTION;
+    
     INSERT INTO USERS VALUE (USERNAME, PASSWORD, NAME, ROLE);
     INSERT INTO LOCATIONS VALUES(USERNAME, LONGTITUDE, LATITUDE);
+    
+    COMMIT;
 END $$
+
 DELIMITER ;
 
 INSERT INTO USERS VALUE ('ADMIN', "ADMIN", "ADMIN", "ADMIN"); -- THE COORDINATES OF ADMIN REPRESENT THE COORDINATES OF WAREHOUSE 
@@ -66,24 +91,24 @@ INSERT INTO LOCATIONS VALUE ('ADMIN', 23.735404014587406, 37.97586815961329);
 
 --  TRIGGERS
 
-DELIMITER $$
-CREATE TRIGGER addCoordinates
-BEFORE INSERT ON LOCATIONS
-FOR EACH ROW
-	BEGIN
-    DECLARE LAT FLOAT8;
-    DECLARE LNG FLOAT8;
-    
-    SELECT LATITUDE, LONGTITUDE INTO LAT, LNG
-    FROM LOCATIONS
-    WHERE USER = 'ADMIN';
-    
-    SET NEW.LONGTITUDE = LNG + 100;
-    SET NEW.LATITUDE = LAT + 100;    
-    
-    END$$
+-- DELIMITER $$
+-- CREATE TRIGGER addCoordinates
+-- BEFORE INSERT ON LOCATIONS
+-- FOR EACH ROW
+-- 	BEGIN
+--     DECLARE LAT FLOAT8;
+--     DECLARE LNG FLOAT8;
+--     
+--     SELECT LATITUDE, LONGTITUDE INTO LAT, LNG
+--     FROM LOCATIONS
+--     WHERE USER = 'ADMIN';
+--     
+--     SET NEW.LONGTITUDE = LNG + 100;
+--     SET NEW.LATITUDE = LAT + 100;    
+--     
+--     END$$
 
-DELIMITER ;
+-- DELIMITER ;
 
 -- CALL ADD_USER("test", "test", "test", "citizen"); 
 

@@ -1,8 +1,13 @@
 "use strict"
 
-let user = JSON.parse(localStorage.getItem("user"));
-if(user.role !== null && user.role !== undefined)
-window.location.replace('http://localhost/Project/map.html');
+let user = JSON.parse(localStorage.getItem("user")) || { };
+
+init_user();
+
+if(user.role === "ADMIN")
+    window.location.replace('/Project/adminPage.html');
+else if(user.role !== null && user.role !== undefined)
+    window.location.replace('/Project/map.html');
 
 function selectRole(role) {
     document.getElementById('selectedRole').value = role;
@@ -17,6 +22,15 @@ function showSection(sectionId) {
 
     var selectedSection = document.getElementById(sectionId);
     selectedSection.classList.remove('hidden');
+    
+    document.getElementById("signup-alert").classList.remove("alert-danger");
+    document.getElementById("signup-alert").classList.remove("alert-success");
+    document.getElementById("signup-alert").innerHTML = "";
+
+    document.getElementById("login-alert").classList.remove("alert-danger");
+    document.getElementById("login-alert").innerHTML = "";
+
+    clean_forms();
 }
 
 const login_form  = document.getElementById("login-form");
@@ -41,9 +55,13 @@ login_form.addEventListener('submit', (e) => {
 
         document.getElementById("login-alert").classList.add("alert-danger");
         document.getElementById("login-alert").innerHTML = messages.join(", ");
+
+        setTimeout( function() {
+            document.getElementById("login-alert").classList.remove("alert-danger");
+            document.getElementById("login-alert").innerHTML = "";
+        }, time_until_a_message_fade_out);
     }
     else{
-        console.log("check")
         let data = new FormData();
         data.append("login_username", username);
         data.append("login_password", password);
@@ -64,6 +82,12 @@ login_form.addEventListener('submit', (e) => {
                 }else if(data.info === "SUCCESS"){
                     user.name = data.name;
                     user.role = data.role;
+                    user.location = { };
+                    user.location.lat = parseFloat(data.latitude);
+                    user.location.lng = parseFloat(data.longtitude);
+                    user.warehouse_location = { };
+                    user.warehouse_location.lat = parseFloat(data.warehouse_lat);
+                    user.warehouse_location.lng = parseFloat(data.warehouse_lng);
                     localStorage.setItem("user", JSON.stringify(user));
 
                     if(user.role === "ADMIN")
@@ -75,10 +99,16 @@ login_form.addEventListener('submit', (e) => {
                     document.getElementById("login-alert").innerHTML = "Προκλήθηκε σφάλμα. Ξαναπροσπαθήστε."
                     console.log(`Unexpected Error! - ${data.info}`);
                 }
+
+                setTimeout( function() {
+                    document.getElementById("login-alert").classList.remove("alert-danger");
+                    document.getElementById("login-alert").innerHTML = "";
+                }, time_until_a_message_fade_out);
             }
         )
         .catch(error => console.error("Error:", error));
-
+        
+        clean_forms();
         
     }
 });
@@ -101,14 +131,25 @@ signup_form.addEventListener('submit', (e) => {
     if(messages.length > 0){
         document.getElementById("signup-alert").classList.remove("alert-danger");
         document.getElementById("signup-alert").classList.remove("alert-success");
+        
         document.getElementById("signup-alert").classList.add("alert-danger");
         document.getElementById("signup-alert").innerHTML = messages.join(", ");
+
+        setTimeout( function() {
+            document.getElementById("signup-alert").classList.remove("alert-danger");
+        document.getElementById("signup-alert").classList.remove("alert-success");
+            document.getElementById("signup-alert").innerHTML = "";
+        }, time_until_a_message_fade_out);
     }
     else {
+        const location = calculate_the_position();
+
         let data = new FormData();
         data.append("signup_name", name);
         data.append("signup_username", username);
         data.append("signup_password", password);
+        data.append("longtitude", location[1]);
+        data.append("latitude", location[0]);
 
         fetch("/Project/PHP/call_add_user.php", {
             method: "POST",
@@ -134,8 +175,16 @@ signup_form.addEventListener('submit', (e) => {
                         document.getElementById("signup-alert").innerHTML = "Συνέβη κάποιο σφάλμα. Προσπαθήστε ξανά";
                         break;
                 }
+                
+                setTimeout( function() {
+                    document.getElementById("signup-alert").classList.remove("alert-danger");
+                    document.getElementById("signup-alert").classList.remove("alert-success");
+                    document.getElementById("signup-alert").innerHTML = "";
+                }, time_until_a_message_fade_out);
             }
         )
         .catch(error => console.error("Error:", error));
+
+        clean_forms();
     }
 })
