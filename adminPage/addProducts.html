@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <link rel="stylesheet" href="http://localhost/Project/CSS/adminPage.css">
+
+    <script defer src="/Project/Javascript/addProduct.js"></script>
+    <script src="/Project/Javascript/general.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <!-- navbar -->
+    <nav class="navbar navbar-expand-md navbar-light">
+        <div class="container-xxl">
+            <span class="fw-bold text-secondary">
+                Let's give a name!
+            </span>
+            <!-- toggle button for mibile nav -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-nav"
+                aria-controls="main-nav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- navbar links -->
+            <div class="collapse navbar-collapse justify-content-end align-center" id="main-nav">
+                <ul class="navbar-nav">
+
+                    <li class="nav-item">
+                        <a href="/Project/adminPage/addProducts.html" class="nav-link">Προσθήκη Προϊόντος</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="/Project/adminPage/addRescuer.html" class="nav-link">Προσθήκη Διασώστη</a>
+                    </li>
+
+                    <li class="nav-item ms-2 d-none d-md-inline">
+                        <a type="button" class="btn btn-secondary" onclick="logout()">Έξοδος</a>
+                    </li>
+
+                    <li class="nav-item d-md-none">
+                        <a href="" class="nav-link" onclick="logout()">Έξοδος</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ADD PRODUCTS -->
+
+    <div class="container my-5">
+        <nav>
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                <button type="button" class="nav-link active" id="nav-add-products-manually-tab" data-bs-toggle="tab"
+                    data-bs-target="#nav-manual" role="tab" aria-controls="nav-manual" aria-selected="true">Χειροκίνητη
+                    Εισαγωγή</button>
+
+                <button type="button" class="nav-link" id="nav-add-products-file-tab" data-bs-toggle="tab"
+                    data-bs-target="#nav-file" role="tab" aria-controls="nav-file" aria-selected="true">Εισαγωγή μέσω
+                    Αρχείου</button>
+            </div>
+        </nav>
+
+
+        <div class="tab-content" id="nav-tabContent">
+
+            <!-- ADD MANUALLY -->
+
+            <div class="tab-pane fade show active p-3" id="nav-manual" aria-labelledby="nav-add-products-manually-tab">
+                <h2>Φόρμα Εισαγωγής Προϊόντος</h2>
+                <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. At deleniti aut aliquam accusantium rem
+                    quis nam totam sed. Placeat ratione, deserunt reiciendis nesciunt delectus in! Lorem ipsum dolor,
+                    sit amet consectetur adipisicing elit. Quod ipsam amet totam fugiat eos vero at debitis. Itaque
+                    commodi aliquam quae, ut amet animi autem quam, facilis illum delectus et?</p>
+            </div>
+
+            <!-- ADD FROM FILE -->
+
+            <div class="tab-pane fade p-3" id="nav-file" aria-labelledby="nav-add-products-file-tab">
+                <h2>Αυτόματη Εισαγωγή Προϊόντος</h2>
+                <div class="col-lg-7 col-md-5">
+                    <label for="link_to_add_products" class="form-label">Εισάγετε το url:</label>
+                    <input type="url" class="form-control" id="txtUrl" name="url" placeholder="https://example.com">
+                    <button type="button" id="add-product-from-url" class="btn btn-primary mt-3">Εισαγωγή από
+                        link</button>
+                    <hr>
+                    <label for="file_to_add_products" class="form-label">Επιλογή Αρχείου:</label>
+                    <input type="file" class="form-control" name="file_to_add_products" id="file_to_add_products"
+                        placeholder="Επιλογή αρχείου">
+                    <button type="button" id="add-product-from-file" class="btn btn-primary mt-3">Εισαγωγή από αρχείο</button>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+</body>
+
+</html>

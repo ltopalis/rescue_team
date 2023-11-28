@@ -5,7 +5,7 @@ let user = JSON.parse(localStorage.getItem("user")) || { };
 init_user();
 
 if(user.role === "ADMIN")
-    window.location.replace('/Project/adminPage.html');
+    window.location.replace('/Project/adminPage/addRescuer.html');
 else if(user.role !== null && user.role !== undefined)
     window.location.replace('/Project/map.html');
 
@@ -91,7 +91,7 @@ login_form.addEventListener('submit', (e) => {
                     localStorage.setItem("user", JSON.stringify(user));
 
                     if(user.role === "ADMIN")
-                        window.location.replace('http://localhost/Project/adminPage.html');
+                        window.location.replace('http://localhost/Project/adminPage/addRescuer.html');
                     else
                         window.location.replace('http://localhost/Project/map.html');
                 }else{
@@ -203,3 +203,5 @@ signup_form.addEventListener('submit', (e) => {
         clean_forms();
     }
 })
+
+
