@@ -142,7 +142,22 @@ signup_form.addEventListener('submit', (e) => {
         }, time_until_a_message_fade_out);
     }
     else {
-        const location = calculate_the_position();
+        // LET'S CHECK IT AGAIN
+        let location = calculate_the_position();
+
+        if("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    location[0] = position.coords.latitude;
+                    location[1] = position.coords.longitude;
+                },
+                error => {
+                    console.error(`Error getting location: ${error.message}`);
+                }
+            );
+        }else {
+            console.error("Geolocation is not supported by your browser");
+        }
 
         let data = new FormData();
         data.append("signup_name", name);
