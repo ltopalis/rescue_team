@@ -6,10 +6,10 @@ if(user.role === null || user.role === undefined)
 else if(user.role !== "ADMIN")
     alert("Δεν έχετε πρόσβαση σε αυτήν την σελίδα!");
 
-function add_product(link) {
-    fetch(link)
-            .then(response => response.json())
-            .then(data => {
+let status = "before";
+
+function add_product(data) {
+
                 let categories = [];
                 let products = [];
                 let queries = [];
@@ -45,15 +45,8 @@ function add_product(link) {
                     body: data_to_be_sent,
                 }).then(response => response.json())
                     .then(
-                        data => {
-                            console.log(data);
-                        }
-                    ).catch(error => console.error("Error:", error))
-
-            })
-            .catch(error => {
-                return `Error reading JSON file: ${error} `;
-            })
+                        data => { alert("Τα δεδομένα εισήχθησαν επιτυχώς!"); }
+                    ).catch(error => alert("Error: " +  error));
 }
 
 const add_product_from_url = document.getElementById("add-product-from-url");
@@ -64,21 +57,45 @@ const add_product_from_file = document.getElementById("add-product-from-file");
 add_product_from_url.addEventListener("click", ( ) => {
     const url = document.getElementById("txtUrl").value;
 
-    document.getElementById("txtUrl").value = "";
+    fetch(url)
+        .then(response => {
+            if(!response.ok){
+                throw new Error("Network response was not ok");
+            }
+            // return response.json();
+        })
+        .then(data => {
+            console.log(data);
+        })
+        .catch(error => {
+            console.error(`Error fetching the JSON: ${error}`);
+        });
 
-    let r_value = add_product(url);
+    // document.getElementById("txtUrl").value = "";
 
-    console.log(r_value);
+    // let r_value = add_product(url);
+
+    // console.log(r_value);
 });
 
-// NOT WORKING
-
 add_product_from_file.addEventListener("click", ( ) => {
-    const file = document.getElementById("file_to_add_products").value;
 
-    document.getElementById("file_to_add_products").value = "";
+    const fileInput = document.getElementById("file_to_add_products");
 
-    let r_value = add_product(file);
+    if(fileInput.files.length > 0){
+        const file = fileInput.files[0];
 
-    console.log(r_value);
+        if(file.type === "application/json"){
+            fetch(URL.createObjectURL(file))
+                .then(response => response.json())
+                .then(data => {
+                    add_product(data);
+                })
+                .catch(error => console.error("Error reading json file: " + error));
+        }
+        else
+            console.log("The file you've provided isn't a json file");
+    }
+
+    fileInput.value = "";
 });

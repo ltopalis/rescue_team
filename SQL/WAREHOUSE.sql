@@ -25,6 +25,11 @@ CREATE TABLE IF NOT EXISTS WAREHOUSE(
                                     FOREIGN KEY(PRODUCT) REFERENCES PRODUCTS(ID));
 
 DELIMITER $$
+
+-- Όταν τα p_DETAIL_NAME και p_DETAIL_VALUE έχουν την κενή συμβολοσειρά 
+-- δεν αποθηκεύεται τίποτε στην DETAILS_OF_PRODUCTS άρα η αμφάνιση
+--  των στοιχείων πρέπει να γίενται μέσω LEFT JOIN
+
 CREATE PROCEDURE ADD_NEW_PRODUCT(
 								IN p_CATEGORY VARCHAR(50),
                                 IN p_PRODUCT VARCHAR(50),
@@ -65,7 +70,9 @@ BEGIN
 			WHERE PRODUCT_NAME = p_PRODUCT;
 		END IF;
 
-		INSERT INTO DETAILS_OF_PRODUCTS VALUE (PRODUCT_ID, p_DETAIL_NAME, p_DETAIL_VALUE);
+		IF p_DETAIL_NAME != "" AND p_DETAIL_VALUE != "" THEN
+			INSERT INTO DETAILS_OF_PRODUCTS VALUE (PRODUCT_ID, p_DETAIL_NAME, p_DETAIL_VALUE);
+		END IF;
 
 		COMMIT;
         
