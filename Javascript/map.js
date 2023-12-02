@@ -37,8 +37,8 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',).addTo(map);
 // TODO: Create Class
 
 markers[0] = L.marker(
-    [37.98, 23.7], {
-    draggable: true,
+    [user.warehouse_location.lat, user.warehouse_location.lng], {
+    draggable: false,
     icon: base
 });
 markers[1] = L.marker(
@@ -49,8 +49,8 @@ markers[1] = L.marker(
 );
 
 markers[2] = L.marker(
-    [38.08, 23.87], {
-    draggable: true,
+    [user.location.lat, user.location.lng], {
+    draggable: false,
     icon: person
 }
 );
@@ -65,7 +65,5 @@ for (let marker of markers) {
 }
 
 markers[1].bindPopup('ΦΟΡΤΗΓΟ 1');
-markers[2].bindPopup('ΦΟΡΤΗΓΟ 2');
-markers[0].bindPopup('ΠΡΟΙΟΝ 1');
-
-
+markers[2].bindPopup(user.name);
+markers[0].bindPopup('ΒΑΣΗ');
