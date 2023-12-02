@@ -143,28 +143,38 @@ signup_form.addEventListener('submit', (e) => {
     }
     else {
         // LET'S CHECK IT AGAIN
-        let location = calculate_the_position();
-
-        if("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                position => {
-                    location[0] = position.coords.latitude;
-                    location[1] = position.coords.longitude;
-                },
-                error => {
-                    console.error(`Error getting location: ${error.message}`);
-                }
-            );
-        }else {
-            console.error("Geolocation is not supported by your browser");
+        let loc;
+        
+        if(document.getElementById("checkboxLocation").checked)
+            calculate_the_position();
+        else{
+            if("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        let c_loc = [];
+                        c_loc[1] = position.coords.latitude;
+                        c_loc[0] = position.coords.longitude;
+                        localStorage.setItem("current_location", JSON.stringify(c_loc));
+                    },
+                    error => {
+                        console.error(`Error getting location: ${error.message}`);
+                    }
+                );
+            }else {
+                console.error("Geolocation is not supported by your browser");
+            }
         }
 
+        loc = JSON.parse(localStorage.getItem("current_location"));
+        console.log(loc);
+
         let data = new FormData();
+        
         data.append("signup_name", name);
         data.append("signup_username", username);
         data.append("signup_password", password);
-        data.append("longtitude", location[1]);
-        data.append("latitude", location[0]);
+        data.append("longtitude", loc[1]);
+        data.append("latitude", loc[0]);
 
         fetch("/Project/PHP/call_add_user.php", {
             method: "POST",
@@ -189,6 +199,8 @@ signup_form.addEventListener('submit', (e) => {
                         document.getElementById("signup-alert").classList.add("alert-danger");
                         document.getElementById("signup-alert").innerHTML = "Συνέβη κάποιο σφάλμα. Προσπαθήστε ξανά";
                         break;
+                    default:
+                        console.log("I HAVE NO IDEA!" + data);
                 }
                 
                 setTimeout( function() {
@@ -201,6 +213,7 @@ signup_form.addEventListener('submit', (e) => {
         .catch(error => console.error("Error:", error));
 
         clean_forms();
+        localStorage.setItem("current_location", JSON.stringify([]));
     }
 })
 

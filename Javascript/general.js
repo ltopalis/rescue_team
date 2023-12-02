@@ -47,7 +47,7 @@ function calculate_the_position() {
     let latitude = user.warehouse_location.lat + (Math.random() - 0.5) * 2 * (radius / 111.32);
     let longtitude = user.warehouse_location.lng + (Math.random() - 0.5) * 2 * (radius / (111.32 * Math.cos((Math.PI / 180) * user.warehouse_location.lat)));
 
-    return [latitude, longtitude];
+    localStorage.setItem("current_location", JSON.stringify([latitude, longtitude]));
 }
 
 function logout(){

@@ -15,9 +15,6 @@
 
     <!-- For CSS -->
     <link rel="stylesheet" href="./CSS/loginStyle.css">
-
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-
 </head>
 
 <body>
@@ -51,7 +48,7 @@
                         <div class="alert" id="login-alert" role="alert"></div>
 
                         <div class="mb-4 text-center">
-                            <button type="submit" class="btn btn-secondary" >Σύνδεση</button>
+                            <button type="submit" class="btn btn-secondary">Σύνδεση</button>
                         </div>
                     </form>
 
@@ -87,6 +84,11 @@
                                 placeholder="Κωδικός Πρόσβασης" required>
                         </div>
 
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" role="switch" id="checkboxLocation">
+                            <label for="checkboxLocation" class="form-check-label">Τυχαία Τοποθεσία (JUST FOR THE DEMO)</label>
+                        </div>
+
                         <div class="mb-4 text-center"><a href="#" onclick="showSection('login-page')">Έχεις λογαριασμό;
                                 Συνδέσου!</a></div>
 
@@ -102,14 +104,8 @@
         </div>
     </section>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
-        crossorigin="anonymous"></script>
-
     <script src="/Project/Javascript/general.js"></script>
-    <script src="./Javascript/loginPage.js"></script>
-    
-
+    <script src="/Project/Javascript/loginPage.js"></script>
 
 </body>
 
