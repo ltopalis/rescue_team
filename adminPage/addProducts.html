@@ -77,10 +77,74 @@
 
             <div class="tab-pane fade show active p-3" id="nav-manual" aria-labelledby="nav-add-products-manually-tab">
                 <h2>Φόρμα Εισαγωγής Προϊόντος</h2>
-                <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. At deleniti aut aliquam accusantium rem
-                    quis nam totam sed. Placeat ratione, deserunt reiciendis nesciunt delectus in! Lorem ipsum dolor,
-                    sit amet consectetur adipisicing elit. Quod ipsam amet totam fugiat eos vero at debitis. Itaque
-                    commodi aliquam quae, ut amet animi autem quam, facilis illum delectus et?</p>
+                <h3 class="mt-5">Προσθήκη Κατηγορίας</h3>
+                <hr>
+                <form action="">
+                    <div class="row mb-3">
+                        <label for="category_name" class="col-sm-2 col-form-label">Όνομα Κατηγορίας</label>
+                        <div class="col-sm-7 col-lg-4">
+                            <input type="text" class="form-control" name="category_name" id="category_name" required>
+                        </div>
+                    </div>
+
+                    <div class="alert" id="add-category-alert" role="alert"></div>
+
+                    <button type="button" id="add-category-manually" class="btn btn-primary mt-3">Προσθήκη</button>
+                </form>
+                <h3 class="mt-5">Προσθήκη Προϊόντος</h3>
+                <hr>
+                <form action="">
+                    <div class="row mb-3">
+                        <label for="item_name" class="col-sm-2 col-form-label">Όνομα Προϊόντος</label>
+                        <div class="col-sm-7 col-lg-4">
+                            <input type="text" class="form-control" name="item_name" id="item_name">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label for="category_dropdown_menu" class="col-sm-2 col-form-label">Κατηγορία Προϊόντος</label>
+                        <div class="col-sm-7 col-lg-4 dropdown">
+                            <select name="category_dropdown_menu" id="category_dropdown_menu">
+                                <!-- <option value="action" selected>Action</option>
+                                <option value="another_option">Another Option</option>
+                                <option value="something_else">Something else here</option> -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <h5>Πληροφορίες Προϊόντος</h5>
+
+                    <div class="container">
+                        <div class="row align-items-start">
+                            <div class=" ">
+                                <table class="table" id="details_table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Όνομα πληροφορίας</th>
+                                            <th scope="col">Τιμή πληροφορίας</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><input type="text" class="form-control" name="detail_name"
+                                                    id="detail_name" required></td>
+                                            <td><input type="text" class="form-control" name="detail_value"
+                                                    id="detail_value" required></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <input type="button" id="add_details" value="Προσθήκη επιπλέον πληροφοριών"
+                                    class="btn btn-secondary">
+                                </br>
+                                <input type="button" value="Προσθήκη Προϊόντος" class="btn btn-primary mt-4"
+                                    id="add_product">
+                            </div>
+                        </div>
+
+                    </div>
+
+                </form>
+
             </div>
 
             <!-- ADD FROM FILE -->
@@ -96,7 +160,8 @@
                     <label for="file_to_add_products" class="form-label">Επιλογή Αρχείου:</label>
                     <input type="file" class="form-control" name="file_to_add_products" id="file_to_add_products"
                         placeholder="Επιλογή αρχείου" accept=".json">
-                    <button type="button" id="add-product-from-file" class="btn btn-primary mt-3">Εισαγωγή από αρχείο</button>
+                    <button type="button" id="add-product-from-file" class="btn btn-primary mt-3">Εισαγωγή από
+                        αρχείο</button>
                 </div>
             </div>
         </div>

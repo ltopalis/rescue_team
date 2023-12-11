@@ -6,7 +6,34 @@ if(user.role === null || user.role === undefined)
 else if(user.role !== "ADMIN")
     alert("Δεν έχετε πρόσβαση σε αυτήν την σελίδα!");
 
-let status = "before";
+// Ανανέωση λίστας με τις κατηγορίες προϊόντων
+let all_categories = [];
+
+fetch("/Project/PHP/show_categories.php", {
+    method: "POST"
+}).then(response => response.json())
+    .then(
+        data => { 
+            for(let category of data){
+                all_categories = [...all_categories, category];
+            } 
+            update_category_dropdown_menu();
+        }
+    ).catch(error => alert("Error: " +  error));
+
+function update_category_dropdown_menu(){
+    const categories_dropdown_menu = document.getElementById("category_dropdown_menu");
+    for ( let i = categories_dropdown_menu.options.length; i>=0; i--){
+        categories_dropdown_menu.remove(i);
+    }
+
+    for(let category of all_categories){
+        let option = document.createElement("option");
+        option.value = category;
+        option.text = category;
+        categories_dropdown_menu.appendChild(option);
+    }
+}
 
 function add_product(data) {
 
@@ -46,6 +73,19 @@ function add_product(data) {
                 }).then(response => response.json())
                     .then(
                         data => { alert("Τα δεδομένα εισήχθησαν επιτυχώς!"); }
+                    ).catch(error => alert("Error: " +  error));
+
+                all_categories = [];
+                fetch("/Project/PHP/show_categories.php", {
+                    method: "POST"
+                }).then(response => response.json())
+                    .then(
+                        data => { 
+                            for(let category of data){
+                                all_categories = [...all_categories, category];
+                            } 
+                            update_category_dropdown_menu();
+                        }
                     ).catch(error => alert("Error: " +  error));
 }
 
@@ -98,4 +138,116 @@ add_product_from_file.addEventListener("click", ( ) => {
     }
 
     fileInput.value = "";
+});
+
+const add_category_btn = document.getElementById("add-category-manually");
+add_category_btn.addEventListener("click", () => {
+    const new_category = document.getElementById("category_name");
+    
+    if(new_category.value === "") return;
+
+    let data = new FormData();
+    data.append("new_category", new_category.value);
+
+    fetch("../PHP/add_category.php", {
+        method: "POST",
+        body: data
+    })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("add-category-alert").classList.remove("alert-danger");
+            document.getElementById("add-category-alert").classList.remove("alert-success");
+            document.getElementById("add-category-alert").innerHTML = "";
+            switch(data){
+                case "SUCCESS":
+                    document.getElementById("add-category-alert").classList.add("alert-success");
+                    document.getElementById("add-category-alert").innerHTML = "Η κατηγορία προϊόντος προστέθηκε με επιτυχία!";
+
+                    all_categories.push(new_category.value);
+                    all_categories.sort();
+                    update_category_dropdown_menu();
+
+    new_category.value = "";
+                    break;
+                case "DUPLICATE_ENTRY":
+                    document.getElementById("add-category-alert").classList.add("alert-danger");
+                    document.getElementById("add-category-alert").innerHTML = "Η κατηγορία υπάρχει ήδη!";
+                    break;
+                case "UNEXPECTED_ERROR":
+                    document.getElementById("add-category-alert").classList.add("alert-danger");
+                    document.getElementById("add-category-alert").innerHTML = "Συνέβη κάποιο σφάλμα. Προσπαθήστε ξανά";
+                    break;
+            }
+            setTimeout( function() {
+                document.getElementById("add-category-alert").classList.remove("alert-danger");
+                document.getElementById("add-category-alert").classList.remove("alert-success");
+                document.getElementById("add-category-alert").innerHTML = "";
+            }, time_until_a_message_fade_out);
+        })
+        .catch(error => console.error("Error:", error));
+});
+
+const add_details_btn = document.getElementById("add_details");
+
+add_details_btn.addEventListener("click", () => {
+    const table = document.getElementById("details_table").getElementsByTagName("tbody")[0];
+
+    const newRow = table.insertRow();
+
+    const detail_name_txt = document.createElement("input");
+    detail_name_txt.setAttribute("type", "text");
+    detail_name_txt.setAttribute("name", "detail_name");
+    detail_name_txt.setAttribute("id", "detail_name");
+    detail_name_txt.classList.add("form-control");
+    
+    const detail_value_txt = document.createElement("input");
+    detail_value_txt.setAttribute("type", "text");
+    detail_value_txt.setAttribute("name", "detail_value");
+    detail_value_txt.setAttribute("id", "detail_value");
+    detail_value_txt.classList.add("form-control");
+    
+    newRow.insertCell().appendChild(detail_name_txt);
+    newRow.insertCell().appendChild(detail_value_txt);
+});
+
+const add_products = document.getElementById("add_product");
+add_products.addEventListener("click", () => {
+    const name = document.getElementById("item_name").value;
+    const category = document.getElementById("category_dropdown_menu").value;
+    const detail_table = document.getElementById("details_table").getElementsByTagName("tbody")[0];
+    let queries = [];
+
+    if(name === "") return;
+
+    for(let row of detail_table.rows){
+        let detail_name = row.getElementsByTagName("td")[0].getElementsByTagName("input")[0].value;
+        let detail_value = row.getElementsByTagName("td")[1].getElementsByTagName("input")[0].value;
+
+        if(detail_name === "" | detail_value === "") continue;
+
+        let query = `CALL ADD_NEW_PRODUCT('${category}', '${name}', '${detail_name}', '${detail_value}');`;
+
+        queries = [...queries, query];
+
+    }
+
+    let data_to_be_sent = new FormData();
+
+    data_to_be_sent.append("queries", queries.join("\n"));
+
+    fetch("/Project/PHP/call_add_new_product.php", {
+        method: "POST",
+        body: data_to_be_sent,
+    }).then(response => response.json())
+        .then(
+            data => { alert("Τα δεδομένα εισήχθησαν επιτυχώς!"); }
+            ).catch(error => alert("Error: " +  error));
+
+    // clean table
+
+    document.getElementById("item_name").value = "";
+    for(let row of detail_table.rows){
+        row.getElementsByTagName("td")[0].getElementsByTagName("input")[0].value = "";
+        row.getElementsByTagName("td")[1].getElementsByTagName("input")[0].value = "";
+    }
 });

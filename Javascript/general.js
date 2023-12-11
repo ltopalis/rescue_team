@@ -1,6 +1,6 @@
 "use strict"
 
-const time_until_a_message_fade_out = 1000 * 60 * 2; // 2 minutes
+const time_until_a_message_fade_out = 1000 * 60; // 1 minute
 
 function init_user(){
     fetch("/Project/PHP/get_warehouse_location.php", {
