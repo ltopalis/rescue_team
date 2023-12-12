@@ -63,6 +63,8 @@ function add_product(data) {
                     }
                 }
 
+                console.log(queries);
+
                 let data_to_be_sent = new FormData();
 
                 data_to_be_sent.append("queries", queries.join("\n"));
