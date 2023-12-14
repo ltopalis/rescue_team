@@ -1,6 +1,7 @@
 "use strict"
 
 const time_until_a_message_fade_out = 1000 * 60; // 1 minute
+const number_of_products_per_page = 10;
 
 function init_user(){
     fetch("/Project/PHP/get_warehouse_location.php", {

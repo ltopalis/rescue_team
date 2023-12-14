@@ -7,7 +7,7 @@ try {
     if ($conn->multi_query($sqlInserts)) {
         do {
             if ($result = $conn->store_result()) {
-                while ($row = $result->fetch_assoc()) { echo "test"; }
+                while ($row = $result->fetch_assoc()) { }
                 $result->free();
             }
         } while ($conn->next_result());
@@ -15,7 +15,7 @@ try {
         $send = "SUCCESS";
 
     } else {
-        $send = $send . " \n" . "Error executing batch of commands: " . $conn->error;
+        $send = "Error executing batch of commands: " . $conn->error;
     }
 
     echo json_encode($send);

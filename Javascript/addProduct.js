@@ -37,35 +37,96 @@ function update_category_dropdown_menu(){
 
 function add_product(data) {
 
-                let categories = [];
-                let products = [];
-                let queries = [];
+    let categories = [];
+    let products = [];
+    let queries = [];
 
-                for (let cat of data.categories) {
-                    categories[cat.id] = cat.category_name;
-                }
+    for (let cat of data.categories) {
+        if(cat !== undefined){
+            categories[cat.id] = cat.category_name;
+            let query = `CALL ADD_CATEGORIES('${categories[cat.id]}');`;
+            queries.push(query);
+            all_categories.push(categories[cat.id]);
+        }
+    }
 
-                for (let item of data.items) {
-                    let details = [];
+    all_categories.sort();
 
-                    for (let detail of item.details) {
-                        details = [...details, detail]
+    console.log(queries);
+
+    // Send categories
+    let data_to_be_sent = new FormData();
+    data_to_be_sent.append("queries", queries.join("\n"));
+
+    fetch("/Project/PHP/call_add_new_product.php", {
+        method: "POST",
+        body: data_to_be_sent,
+    }).then(response => response.json())
+        .then(data => {
+            
+            document.getElementById("add-from-file-alert").classList.remove("alert-danger");
+            document.getElementById("add-from-file-alert").classList.remove("alert-success");
+            document.getElementById("add-from-file-alert").innerHTML = "";
+
+            if(data === "SUCCESS"){
+                document.getElementById("add-from-file-alert").classList.add("alert-success");
+                document.getElementById("add-from-file-alert").innerHTML = "Η κατηγορία προϊόντος προστέθηκε με επιτυχία!";
+
+                all_categories = [];
+                fetch("/Project/PHP/show_categories.php", {
+                    method: "POST"
+                }).then(response => response.json())
+                .then(
+                    data => { 
+                        for(let category of data){
+                        all_categories.push(category);
+                    } 
+                    all_categories.sort();
+                    update_category_dropdown_menu();
                     }
+                ).catch(error => alert("Error: " +  error));
+            }
+            else if(RegExp(".*DUPLICATE_ENTRY.*", 'g').test(data)){
+                console.error(data);
+                document.getElementById("add-from-file-alert").classList.add("alert-danger");
+                document.getElementById("add-from-file-alert").innerHTML = "Η κατηγορία υπάρχει ήδη!";
+            }
+            else if(RegExp(".*UNEXPECTED_ERROR.*", 'g').test(data)){
+                console.error(data);
+                document.getElementById("add-from-file-alert").classList.add("alert-danger");
+                document.getElementById("add-from-file-alert").innerHTML = "Συνέβη κάποιο σφάλμα. Προσπαθήστε ξανά";
+            }
 
-                    let new_item = [item.name, categories[item.category], details];
-                    products = [...products, new_item];
-                }
+            setTimeout( () => {
+                document.getElementById("add-from-file-alert").classList.remove("alert-danger");
+                document.getElementById("add-from-file-alert").classList.remove("alert-success");
+                document.getElementById("add-from-file-alert").innerHTML = "";
+            }, time_until_a_message_fade_out)
+        }).catch(error => alert("Error: " +  error));
 
-                for (let item of products) {
-                    for (let detail of item[2]) {
-                        let query = `CALL ADD_NEW_PRODUCT('${item[1]}', '${item[0]}', '${detail["detail_name"]}', '${detail["detail_value"]}');`;
-                        queries = [...queries, query];
-                    }
-                }
+    queries = [];
 
-                console.log(queries);
+    for (let item of data.items) {
+        let details = [];
 
-                let data_to_be_sent = new FormData();
+        for (let detail of item.details) {
+            details = [...details, detail]
+        }
+
+        let new_item = [item.name, categories[item.category], details];
+            products = [...products, new_item];
+        }
+
+        for (let item of products) {
+            for (let detail of item[2]) {
+                let query = `CALL ADD_NEW_PRODUCT('${item[1]}', '${item[0]}', '${detail["detail_name"]}', '${detail["detail_value"]}');`;
+                queries = [...queries, query];
+            }
+    }
+
+                // console.log(queries);
+
+                data_to_be_sent = new FormData();
 
                 data_to_be_sent.append("queries", queries.join("\n"));
 
@@ -74,21 +135,10 @@ function add_product(data) {
                     body: data_to_be_sent,
                 }).then(response => response.json())
                     .then(
-                        data => { alert("Τα δεδομένα εισήχθησαν επιτυχώς!"); }
+                        () => { alert("Τα δεδομένα εισήχθησαν επιτυχώς!"); }
                     ).catch(error => alert("Error: " +  error));
 
-                all_categories = [];
-                fetch("/Project/PHP/show_categories.php", {
-                    method: "POST"
-                }).then(response => response.json())
-                    .then(
-                        data => { 
-                            for(let category of data){
-                                all_categories = [...all_categories, category];
-                            } 
-                            update_category_dropdown_menu();
-                        }
-                    ).catch(error => alert("Error: " +  error));
+                
 }
 
 const add_product_from_url = document.getElementById("add-product-from-url");
@@ -169,7 +219,7 @@ add_category_btn.addEventListener("click", () => {
                     all_categories.sort();
                     update_category_dropdown_menu();
 
-    new_category.value = "";
+                    new_category.value = "";
                     break;
                 case "DUPLICATE_ENTRY":
                     document.getElementById("add-category-alert").classList.add("alert-danger");
