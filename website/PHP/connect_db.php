@@ -1,8 +1,8 @@
 <?php
-$servername = "localhost";
+$servername = "mysql";
 $username = "root";
-$password = "root";
-$dbname = "ceid_rescue_program";
+$password = "root_password";
+$dbname = "CEID_RESCUE_PROGRAM";
 
 // Create connection
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);

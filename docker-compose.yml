@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql_container
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: CEID_RESCUE_PROGRAM
+      MYSQL_USER: test_user
+      MYSQL_PASSWORD: test_password
+    networks:
+      - mynetwork
+    volumes:
+      - ./SQL:/docker-entrypoint-initdb.d
+
+  apache:
+    build:
+      context: .
+      dockerfile: Dockerfile.apache
+    container_name: apache_container
+    volumes:
+      - ./website:/var/www/html
+    ports:
+      - "80:80"
+    networks:
+      - mynetwork
+    depends_on:
+      - mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin_container
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: test_user
+      PMA_PASSWORD: test_password
+    ports:
+      - "8080:80"
+    networks:
+      - mynetwork
+    depends_on:
+      - mysql
+
+networks:
+  mynetwork:
+    driver: bridge

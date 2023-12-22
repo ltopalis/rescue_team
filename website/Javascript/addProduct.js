@@ -2,14 +2,14 @@
 
 let user = JSON.parse(localStorage.getItem("user")) || { };
 if(user.role === null || user.role === undefined)
-    window.location.replace('http://localhost/Project/');
+    window.location.replace('../index.html');
 else if(user.role !== "ADMIN")
     alert("Δεν έχετε πρόσβαση σε αυτήν την σελίδα!");
 
 // Ανανέωση λίστας με τις κατηγορίες προϊόντων
 let all_categories = [];
 
-fetch("/Project/PHP/show_categories.php", {
+fetch("../PHP/show_categories.php", {
     method: "POST"
 }).then(response => response.json())
     .then(
@@ -58,7 +58,7 @@ function add_product(data) {
     let data_to_be_sent = new FormData();
     data_to_be_sent.append("queries", queries.join("\n"));
 
-    fetch("/Project/PHP/call_add_new_product.php", {
+    fetch("../PHP/call_add_new_product.php", {
         method: "POST",
         body: data_to_be_sent,
     }).then(response => response.json())
@@ -73,7 +73,7 @@ function add_product(data) {
                 document.getElementById("add-from-file-alert").innerHTML = "Η κατηγορία προϊόντος προστέθηκε με επιτυχία!";
 
                 all_categories = [];
-                fetch("/Project/PHP/show_categories.php", {
+                fetch("../PHP/show_categories.php", {
                     method: "POST"
                 }).then(response => response.json())
                 .then(
@@ -130,7 +130,7 @@ function add_product(data) {
 
                 data_to_be_sent.append("queries", queries.join("\n"));
 
-                fetch("/Project/PHP/call_add_new_product.php", {
+                fetch("../PHP/call_add_new_product.php", {
                     method: "POST",
                     body: data_to_be_sent,
                 }).then(response => response.json())
@@ -287,7 +287,7 @@ add_products.addEventListener("click", () => {
 
     data_to_be_sent.append("queries", queries.join("\n"));
 
-    fetch("/Project/PHP/call_add_new_product.php", {
+    fetch("../PHP/call_add_new_product.php", {
         method: "POST",
         body: data_to_be_sent,
     }).then(response => response.json())

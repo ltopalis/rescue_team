@@ -2,7 +2,7 @@
 
 let user = JSON.parse(localStorage.getItem("user")) || { };
 if(user.role === null || user.role === undefined)
-    window.location.replace('http://localhost/Project/');
+    window.location.replace('../index.html');
 else if(user.role !== "ADMIN")
     alert("Δεν έχετε πρόσβαση σε αυτήν την σελίδα!");
 
@@ -11,7 +11,7 @@ const table_data = document.getElementById("table-of-products").getElementsByTag
 let number_of_pages_on_table;
 let page = 0;
 
-fetch("/Project/PHP/show_products_in_warehouse.php", { 
+fetch("../PHP/show_products_in_warehouse.php", { 
     method: "GET"
 }).then(response => response.json())
     .then(

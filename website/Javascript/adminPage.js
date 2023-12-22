@@ -2,7 +2,7 @@
 
 let user = JSON.parse(localStorage.getItem("user")) || { };
 if(user.role === null || user.role === undefined)
-    window.location.replace('http://localhost/Project/');
+    window.location.replace('../index.html');
 else if(user.role !== "ADMIN")
     alert("Δεν έχετε πρόσβαση σε αυτήν την σελίδα!");
 

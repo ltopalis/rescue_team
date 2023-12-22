@@ -2,26 +2,26 @@
 
 // custom icons
 const base = L.icon({
-    iconUrl: "icons/home.png",
+    iconUrl: "/icons/home.png",
     iconSize: [53,53],
     popupAnchor: [1, -20]
 });
 
 const van = L.icon({
-    iconUrl: "http://localhost/Project/icons/delivery-van.png",
+    iconUrl: "/icons/delivery-van.png",
     iconSize: [30,30],
     popupAnchor: [-2, -9]
 });
 
 const person = L.icon({
-    iconUrl: "http://localhost/Project/icons/people.png",
+    iconUrl: "/icons/people.png",
     iconSize: [35,35],
     popupAnchor: [1, -20]
 });
 
 const user = JSON.parse(localStorage.getItem("user")) || { };
 if(user.role === null || user.role === undefined)
-    window.location.replace('http://localhost/Project/');
+    window.location.replace('../index.html');
 
 let map = L.map('map');
 

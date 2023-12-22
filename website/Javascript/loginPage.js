@@ -5,9 +5,9 @@ let user = JSON.parse(localStorage.getItem("user")) || { };
 init_user();
 
 if(user.role === "ADMIN")
-    window.location.replace('/Project/adminPage/addRescuer.html');
+    window.location.replace('./adminPage/addRescuer.html');
 else if(user.role !== null && user.role !== undefined)
-    window.location.replace('/Project/map.html');
+    window.location.replace('./map.html');
 
 function selectRole(role) {
     document.getElementById('selectedRole').value = role;
@@ -66,7 +66,7 @@ login_form.addEventListener('submit', (e) => {
         data.append("login_username", username);
         data.append("login_password", password);
 
-        fetch("/Project/PHP/call_check_user.php", {
+        fetch("./PHP/call_check_user.php", {
             method: "POST",
             body: data
         }).then(response => response.json())
@@ -91,9 +91,9 @@ login_form.addEventListener('submit', (e) => {
                     localStorage.setItem("user", JSON.stringify(user));
 
                     if(user.role === "ADMIN")
-                        window.location.replace('http://localhost/Project/adminPage/addRescuer.html');
+                        window.location.replace('./adminPage/addRescuer.html');
                     else
-                        window.location.replace('http://localhost/Project/map.html');
+                        window.location.replace('./map.html');
                 }else{
                     document.getElementById("login-alert").classList.add("alert-danger");
                     document.getElementById("login-alert").innerHTML = "Προκλήθηκε σφάλμα. Ξαναπροσπαθήστε."
@@ -176,7 +176,7 @@ signup_form.addEventListener('submit', (e) => {
         data.append("longtitude", loc[1]);
         data.append("latitude", loc[0]);
 
-        fetch("/Project/PHP/call_add_user.php", {
+        fetch("../PHP/call_add_user.php", {
             method: "POST",
             body: data
         }).then(response => response.json())
