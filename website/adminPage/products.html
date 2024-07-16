@@ -68,13 +68,12 @@
                 <thead>
                     <tr>
                         <th scope="col" hidden>id</th>
+                        <th scope="col"></th>
                         <th scope="col">Προϊόν</th>
                         <th scope="col">Κατηγορία</th>
                         <th scope="col">Λεπτομέριες</th>
                         <th scope="col">Τιμή Λεπτομέριας</th>
-                        <th scope="col">
-                            Ποσότητα
-                        </th>
+                        <th scope="col">Ποσότητα</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -99,18 +98,14 @@
                     <input class="form-check-input" type="checkbox" role="switch" id="editable-checkbox"
                         onclick="toogle_ediatble_field()">
                 </div>
+				<div>
+					<button type="button" id="save-new-values" class="btn btn-outline-success btn-sm">ΑΠΟΘΗΚΕΥΣΗ</button>
+					<button type="button" id="cancel-new-values" class="btn btn-outline-danger btn-sm">ΑΚΥΡΩΣΗ</button>
+				</div>
             </div>
         </div>
     </div>
 
-    <div class="container">
-        <div class="row justify-content-end">
-            <div class="col-lg-7 col-sm-6">
-                <a href="#" id="prev-page" hidden><i class="bi bi-arrow-left"></i></a>
-                <a href="#" id="next-page"><i class="bi bi-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
 </body>
 
 </html>

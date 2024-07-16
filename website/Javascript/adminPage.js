@@ -37,8 +37,9 @@ add_rescuer_form.addEventListener("submit", (e) => {
         }, time_until_a_message_fade_out);
     }
     else{
-        
-        const location = calculate_the_position();
+        calculate_the_position();
+
+        const location = JSON.parse(localStorage.getItem("current_location"));
 
         let data = new FormData();
         data.append("phone", phone);
@@ -47,7 +48,7 @@ add_rescuer_form.addEventListener("submit", (e) => {
         data.append("longtitude", location[1]);
         data.append("latitude", location[0]);
 
-        fetch("/Project/PHP/addRescuer.php", {
+        fetch("../PHP/addRescuer.php", {
             method: "POST",
             body: data
         }).then(response => response.json())
