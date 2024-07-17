@@ -1,0 +1,35 @@
+.deleteButton {
+    background-color: #e74c3c;
+    color: white; 
+    border: none; 
+    padding: 10px 20px; 
+    font-size: 16px; 
+    cursor: pointer; 
+    border-radius: 5px; 
+    display: flex; 
+    align-items: center;
+    gap: 10px; 
+    transition: background-color 0.3s ease;
+}
+
+.deleteButton:hover {
+    background-color: #c0392b; 
+}
+
+.restoreButton {
+    background-color: #3ce767;
+    color: white; 
+    border: none; 
+    padding: 10px 20px; 
+    font-size: 16px; 
+    cursor: pointer; 
+    border-radius: 5px; 
+    display: flex; 
+    align-items: center;
+    gap: 10px; 
+    transition: background-color 0.3s ease;
+}
+
+.restoreButton:hover {
+    background-color: #2bc03c; 
+}

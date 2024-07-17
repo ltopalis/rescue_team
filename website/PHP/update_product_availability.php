@@ -8,9 +8,9 @@ $data = json_decode($updateData, true);
 $sqlQueries = "";
 foreach ($data as $item) {
 	$id = $item['id'];
-	$amount = $item['amount'];
+    $discontinued = $item['discontinued'];
 	
-	$sqlQueries .= "UPDATE WAREHOUSE SET amount = " . $amount . " WHERE PRODUCT = " . $id . ";";
+	$sqlQueries .= "UPDATE PRODUCTS SET discontinued = " . $discontinued . " WHERE ID = " . $id. ";";
 }
 
 if ($conn->multi_query($sqlQueries)) {

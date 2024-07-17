@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS PRODUCTS(
 									ID INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
                                     CATEGORY VARCHAR(50) NOT NULL,
                                     PRODUCT_NAME VARCHAR(50) NOT NULL,
+                                    DISCONTINUED BOOLEAN NOT NULL DEFAULT FALSE,
                                     
                                     FOREIGN KEY (CATEGORY) REFERENCES CATEGORIES(CATEGORY_NAME));
                                     
@@ -18,15 +19,14 @@ CREATE TABLE IF NOT EXISTS DETAILS_OF_PRODUCTS(
                                                 FOREIGN KEY (PRODUCT) REFERENCES PRODUCTS(ID));
 
 CREATE TABLE IF NOT EXISTS WAREHOUSE(
-									ID INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-                                    PRODUCT INT NOT NULL,
+                                    PRODUCT INT NOT NULL PRIMARY KEY,
                                     AMOUNT INT NOT NULL DEFAULT 0,
                                     
                                     FOREIGN KEY(PRODUCT) REFERENCES PRODUCTS(ID));
 
 DELIMITER $$
 
-CREATE PROCEDURE ADD_CATEGORIES(IN p_CATEGORY VARCHAR(50))
+CREATE PROCEDURE ADD_CATEGORY(IN p_CATEGORY VARCHAR(50))
 BEGIN
 	DECLARE FOUND_CATEGORY VARCHAR(50);
     
@@ -151,3 +151,49 @@ BEGIN
 END$$
 DELIMITER ;
 
+CALL ADD_CATEGORY('Medicines');
+
+CALL ADD_NEW_PRODUCT('Medicines', 'Aspirin', 'pills', '40');
+CALL ADD_NEW_PRODUCT('Medicines', 'Aspirin', 'active substance', '500mg');
+
+CALL ADD_NEW_PRODUCT('Medicines', 'Bandage', 'length', '50m');
+
+CALL ADD_NEW_PRODUCT('Medicines', 'Amoxicillin Capsules', 'active substance', '500mg');
+CALL ADD_NEW_PRODUCT('Medicines', 'Amoxicillin Capsules', 'dosage form', 'capsule');
+CALL ADD_NEW_PRODUCT('Medicines', 'Amoxicillin Capsules', 'administration', 'oral');
+
+CALL ADD_NEW_PRODUCT('Medicines', 'Ibuprofen Tablets', 'active substance', '200mg');
+CALL ADD_NEW_PRODUCT('Medicines', 'Ibuprofen Tablets', 'dosage form', 'tablet');
+CALL ADD_NEW_PRODUCT('Medicines', 'Ibuprofen Tablets', 'administration', 'oral');
+
+CALL ADD_NEW_PRODUCT('Medicines', 'Tetanus Toxoid Vaccine', 'active substance', 'single dose');
+CALL ADD_NEW_PRODUCT('Medicines', 'Tetanus Toxoid Vaccine', 'dosage form', 'injection');
+CALL ADD_NEW_PRODUCT('Medicines', 'Tetanus Toxoid Vaccine', 'administration', 'intramuscular');
+
+CALL ADD_NEW_PRODUCT('Medicines', 'Oral Rehydration Salts', 'active substance', 'sachet for 1 liter of solution');
+CALL ADD_NEW_PRODUCT('Medicines', 'Oral Rehydration Salts', 'dosage form', 'powder');
+CALL ADD_NEW_PRODUCT('Medicines', 'Oral Rehydration Salts', 'administration', 'oral solution');
+
+CALL ADD_NEW_PRODUCT('Medicines', 'Peracetamol Tablets', 'active substance', '500mg');
+CALL ADD_NEW_PRODUCT('Medicines', 'Peracetamol Tablets', 'dosage form', 'tablet');
+CALL ADD_NEW_PRODUCT('Medicines', 'Peracetamol Tablets', 'administration', 'oral');
+
+CALL ADD_NEW_PRODUCT('Medicines', 'Hydrocortisone Cream', 'active substance', '1%');
+CALL ADD_NEW_PRODUCT('Medicines', 'Hydrocortisone Cream', 'dosage form', 'cream');
+CALL ADD_NEW_PRODUCT('Medicines', 'Hydrocortisone Cream', 'administration', 'topical');
+
+CALL ADD_NEW_PRODUCT('Medicines', 'Loperamide Capsules', 'active substance', '2mg');
+CALL ADD_NEW_PRODUCT('Medicines', 'Loperamide Capsules', 'dosage form', 'capsule');
+CALL ADD_NEW_PRODUCT('Medicines', 'Loperamide Capsules', 'administration', 'oral');
+
+CALL ADD_NEW_PRODUCT('Medicines', 'Ciprofloxacin Tablets', 'active substance', '500mg');
+CALL ADD_NEW_PRODUCT('Medicines', 'Ciprofloxacin Tablets', 'dosage form', 'tablet');
+CALL ADD_NEW_PRODUCT('Medicines', 'Ciprofloxacin Tablets', 'administration', 'oral');
+
+CALL ADD_NEW_PRODUCT('Medicines', 'Docycycline Capsules', 'active substance', '100mg');
+CALL ADD_NEW_PRODUCT('Medicines', 'Docycycline Capsules', 'dosage form', 'capsule');
+CALL ADD_NEW_PRODUCT('Medicines', 'Docycycline Capsules', 'administration', 'oral');
+
+CALL ADD_NEW_PRODUCT('Medicines', 'Chlorhexidine Solution', 'active substance', '0.5% solution');
+CALL ADD_NEW_PRODUCT('Medicines', 'Chlorhexidine Solution', 'dosage form', 'solution');
+CALL ADD_NEW_PRODUCT('Medicines', 'Chlorhexidine Solution', 'administration', 'topical');
