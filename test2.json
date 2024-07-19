@@ -1,0 +1,25 @@
+{
+    "code": 1,
+    "message": "Retrieved successfully",
+    "items": [
+        
+    ],
+    "categories": [
+        {
+            "id": "23",
+            "category_name": "Tools"
+        },
+        {
+            "id": "1",
+            "category_name": "test"
+        },
+        {
+            "id": "2",
+            "category_name": "test2"
+        }        ,
+        {
+            "id": "3",
+            "category_name": "test3"
+        }
+    ]
+}
