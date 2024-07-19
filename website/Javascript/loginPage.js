@@ -6,8 +6,11 @@ init_user();
 
 if(user.role === "ADMIN")
     window.location.replace('./adminPage/addRescuer.html');
-else if(user.role !== null && user.role !== undefined)
-    window.location.replace('./map.html');
+else if(user.role === "RESCUER")
+    window.location.replace('./rescuerPage/addRescuer.html');
+
+// else if(user.role !== null && user.role !== undefined)
+//     window.location.replace('./map.html');
 
 function selectRole(role) {
     document.getElementById('selectedRole').value = role;
@@ -92,8 +95,8 @@ login_form.addEventListener('submit', (e) => {
 
                     if(user.role === "ADMIN")
                         window.location.replace('./adminPage/addRescuer.html');
-                    else
-                        window.location.replace('./map.html');
+                    else if(user.role === "RESCUER")
+                        window.location.replace('./rescuerPage/addRescuer.html');
                 }else{
                     document.getElementById("login-alert").classList.add("alert-danger");
                     document.getElementById("login-alert").innerHTML = "Προκλήθηκε σφάλμα. Ξαναπροσπαθήστε."

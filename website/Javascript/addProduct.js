@@ -44,7 +44,7 @@ function add_product(data) {
     for (let cat of data.categories) {
         if (cat !== undefined) {
             categories[cat.id] = cat.category_name;
-            let query = `CALL ADD_CATEGORIES('${categories[cat.id]}');`;
+            let query = `CALL ADD_CATEGORY('${categories[cat.id]}');`;
             queries.push(query);
             all_categories.push(categories[cat.id]);
         }
@@ -52,7 +52,7 @@ function add_product(data) {
 
     all_categories.sort();
 
-    console.log(queries);
+    // console.log(queries);
 
     // Send categories
     let data_to_be_sent = new FormData();
@@ -145,6 +145,8 @@ const add_product_from_url = document.getElementById("add-product-from-url");
 const add_product_from_file = document.getElementById("add-product-from-file");
 
 // NOT WORKING
+
+
 
 add_product_from_url.addEventListener("click", () => {
     const url = document.getElementById("txtUrl").value;
