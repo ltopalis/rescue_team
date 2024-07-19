@@ -85,6 +85,7 @@ login_form.addEventListener('submit', (e) => {
                 }else if(data.info === "SUCCESS"){
                     user.name = data.name;
                     user.role = data.role;
+                    user.id = username;
                     user.location = { };
                     user.location.lat = parseFloat(data.latitude);
                     user.location.lng = parseFloat(data.longtitude);

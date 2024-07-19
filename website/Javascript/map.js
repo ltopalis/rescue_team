@@ -203,46 +203,26 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
 class Marker {
     constructor(in_lat, in_lng, name, drag) {
-        this._lat = in_lat;
-        this._lng = in_lng;
-        this.name = name;
         this.marker = L.marker(
-            [this._lat, this._lng], {
-                draggable: drag
-            }
+            [in_lat, in_lng], {
+            draggable: drag
+        }
         );
         this.marker.addTo(map);
-        this.marker.bindPopup(this.name);
+        this.marker.bindPopup(name);
 
         // Bind the dragend event
         this.marker.on('dragend', (e) => {
-            this._lat = e.target.getLatLng().lat;
-            this._lng = e.target.getLatLng().lng;
+            this.marker.getLatLng().lat = e.target.getLatLng().lat;
+            this.marker.getLatLng().lng = e.target.getLatLng().lng;
             this.onChange();
         });
     }
 
     onChange() {
-        console.log(`Marker moved to: Lat ${this._lat}, Lng ${this._lng}`);
+        console.log(`Marker moved to: Lat ${this.marker.getLatLng()}, Lng ${this.marker.getLatLng().lng}`);
     }
 
-    get lat() {
-        return this._lat;
-    }
-
-    set lat(value) {
-        this._lat = value;
-        this.marker.setLatLng([this._lat, this._lng]);
-    }
-
-    get lng() {
-        return this._lng;
-    }
-
-    set lng(value) {
-        this._lng = value;
-        this.marker.setLatLng([this._lat, this._lng]);
-    }
 }
 
 class Warehouse extends Marker {
@@ -252,9 +232,33 @@ class Warehouse extends Marker {
 
     onChange() {
         if (confirm("Είστε σίγουροι ότι θέλετε να αλλάξει η θέση της βάσης")) {
-            console.log(`Warehouse moved to: Lat ${this._lat}, Lng ${this._lng}`);
+            console.log(`Warehouse moved to: Lat ${0}, Lng ${5}`);
         }
     }
+}
+
+function updatePosition(user, marker) {
+    let dataToBeSent = [];
+
+    dataToBeSent.push({'id': user.id, 'lng': marker.getLatLng().lng, 'lat':marker.getLatLng().lat});
+
+
+    const jsonData = JSON.stringify(dataToBeSent);
+    console.log(dataToBeSent);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "../PHP/rescuer/update_position.php", true);
+    xhr.setRequestHeader('Content-type', 'application/json');
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+
+            if (xhr.responseText !== "Success") {
+                alert("Προέκυψε πρόβλημα. Ξαναπροσπαθήστε!");
+                console.error(xhr.responseText);
+            }
+        }
+    };
+
+    xhr.send(jsonData);
 }
 
 class Rescuer extends Marker {
@@ -263,20 +267,21 @@ class Rescuer extends Marker {
     }
 
     calculateDistances() {
-        const currentLatLng = L.latLng(this._lat, this._lng);
+        const currentLatLng = L.latLng(this.marker.getLatLng().lat, this.marker.getLatLng().lng);
 
         // Iterate through all markers
         for (let i = 0; i < markers.length; i++) {
             if (markers[i] instanceof Warehouse) {
-                const warehouseLatLng = L.latLng(markers[i]._lat, markers[i]._lng);
+                const warehouseLatLng = L.latLng(markers[i].marker.getLatLng().lat, markers[i].marker.getLatLng().lng);
                 const distance = currentLatLng.distanceTo(warehouseLatLng);
 
-                console.log(`Distance to Warehouse ${i}: ${distance.toFixed(2)} meters`);
+                
             }
         }
     }
 
     onChange() {
+        updatePosition(user, this.marker);
         this.calculateDistances();
     }
 }
