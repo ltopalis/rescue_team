@@ -57,40 +57,5 @@ add_rescuer_form.addEventListener("submit", (e) => {
                     addUser(userData);
                 }
             );
-
-
-        // fetch("../PHP/addRescuer.php", {
-        //     method: "POST",
-        //     body: data
-        // }).then(response => response.json())
-        // .then(
-        //     data => {
-        //         document.getElementById("add-rescuer-alert").classList.remove("alert-danger");
-        //         document.getElementById("add-rescuer-alert").classList.remove("alert-success");
-        //         switch(data){
-        //             case "SUCCESS":
-        //                 document.getElementById("add-rescuer-alert").classList.add("alert-success");
-        //                 document.getElementById("add-rescuer-alert").innerHTML = "Η εγγραφή πραγματοποιήθηκε με επιτυχία!";
-                        
-        //                 for(let elem of add_rescuer_form.elements)
-        //                     elem.value = "";
-        //                 break;
-        //             case "DUPLICATE_ENTRY":
-        //                 document.getElementById("add-rescuer-alert").classList.add("alert-danger");
-        //                 document.getElementById("add-rescuer-alert").innerHTML = "Ο χρήστης υπάρχει ήδη! Πραγματοποιήστε σύνδεση";
-        //                 break;
-        //             case "UNEXPECTED_ERROR":
-        //                 document.getElementById("add-rescuer-alert").classList.add("alert-danger");
-        //                 document.getElementById("add-rescuer-alert").innerHTML = "Συνέβη κάποιο σφάλμα. Προσπαθήστε ξανά";
-        //                 break;
-        //         }
-        //         setTimeout( function() {
-        //             document.getElementById("add-rescuer-alert").classList.remove("alert-danger");
-        //             document.getElementById("add-rescuer-alert").classList.remove("alert-success");
-        //             document.getElementById("add-rescuer-alert").innerHTML = "";
-        //         }, time_until_a_message_fade_out);
-        //     }
-        // )
-        // .catch(error => console.error("Error:", error));
     }
 });

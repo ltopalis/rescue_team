@@ -1,22 +1,18 @@
 "use strict"
 
-let user = JSON.parse(localStorage.getItem("user")) || {};
-if (user.role === null || user.role === undefined)
-    window.location.replace('../index.html');
-else if (user.role !== "ADMIN")
-    alert("Δεν έχετε πρόσβαση σε αυτήν την σελίδα!");
+pageAccess("ADMIN");
 
 // Ανανέωση λίστας με τις κατηγορίες προϊόντων
 let all_categories = [];
 
-fetch("../PHP/show_categories.php", {
-    method: "POST"
+const response = fetch(`http://localhost:${PORT}/admin/getCategories`, {
+    method: "GET"
 }).then(response => response.json())
     .then(
         data => {
-            for (let category of data) {
-                all_categories = [...all_categories, category];
-            }
+            for (let category of data[0])
+                all_categories = [...all_categories, category.CATEGORY_NAME];
+
             update_category_dropdown_menu();
         }
     ).catch(error => alert("Error: " + error));
@@ -52,57 +48,57 @@ function add_product(data) {
 
     all_categories.sort();
 
-    // console.log(queries);
+    console.log(queries);
 
     // Send categories
     let data_to_be_sent = new FormData();
     data_to_be_sent.append("queries", queries.join("\n"));
 
-    fetch("../PHP/call_add_new_product.php", {
-        method: "POST",
-        body: data_to_be_sent,
-    }).then(response => response.json())
-        .then(data => {
+    // fetch("../PHP/call_add_new_product.php", {
+    //     method: "POST",
+    //     body: data_to_be_sent,
+    // }).then(response => response.json())
+    //     .then(data => {
 
-            document.getElementById("add-from-file-alert").classList.remove("alert-danger");
-            document.getElementById("add-from-file-alert").classList.remove("alert-success");
-            document.getElementById("add-from-file-alert").innerHTML = "";
+    //         document.getElementById("add-from-file-alert").classList.remove("alert-danger");
+    //         document.getElementById("add-from-file-alert").classList.remove("alert-success");
+    //         document.getElementById("add-from-file-alert").innerHTML = "";
 
-            if (data === "SUCCESS") {
-                document.getElementById("add-from-file-alert").classList.add("alert-success");
-                document.getElementById("add-from-file-alert").innerHTML = "Η κατηγορία προϊόντος προστέθηκε με επιτυχία!";
+    //         if (data === "SUCCESS") {
+    //             document.getElementById("add-from-file-alert").classList.add("alert-success");
+    //             document.getElementById("add-from-file-alert").innerHTML = "Η κατηγορία προϊόντος προστέθηκε με επιτυχία!";
 
-                all_categories = [];
-                fetch("../PHP/show_categories.php", {
-                    method: "POST"
-                }).then(response => response.json())
-                    .then(
-                        data => {
-                            for (let category of data) {
-                                all_categories.push(category);
-                            }
-                            all_categories.sort();
-                            update_category_dropdown_menu();
-                        }
-                    ).catch(error => alert("Error: " + error));
-            }
-            else if (RegExp(".*DUPLICATE_ENTRY.*", 'g').test(data)) {
-                console.error(data);
-                document.getElementById("add-from-file-alert").classList.add("alert-danger");
-                document.getElementById("add-from-file-alert").innerHTML = "Η κατηγορία υπάρχει ήδη!";
-            }
-            else if (RegExp(".*UNEXPECTED_ERROR.*", 'g').test(data)) {
-                console.error(data);
-                document.getElementById("add-from-file-alert").classList.add("alert-danger");
-                document.getElementById("add-from-file-alert").innerHTML = "Συνέβη κάποιο σφάλμα. Προσπαθήστε ξανά";
-            }
+    //             all_categories = [];
+    //             fetch("../PHP/show_categories.php", {
+    //                 method: "POST"
+    //             }).then(response => response.json())
+    //                 .then(
+    //                     data => {
+    //                         for (let category of data) {
+    //                             all_categories.push(category);
+    //                         }
+    //                         all_categories.sort();
+    //                         update_category_dropdown_menu();
+    //                     }
+    //                 ).catch(error => alert("Error: " + error));
+    //         }
+    //         else if (RegExp(".*DUPLICATE_ENTRY.*", 'g').test(data)) {
+    //             console.error(data);
+    //             document.getElementById("add-from-file-alert").classList.add("alert-danger");
+    //             document.getElementById("add-from-file-alert").innerHTML = "Η κατηγορία υπάρχει ήδη!";
+    //         }
+    //         else if (RegExp(".*UNEXPECTED_ERROR.*", 'g').test(data)) {
+    //             console.error(data);
+    //             document.getElementById("add-from-file-alert").classList.add("alert-danger");
+    //             document.getElementById("add-from-file-alert").innerHTML = "Συνέβη κάποιο σφάλμα. Προσπαθήστε ξανά";
+    //         }
 
-            setTimeout(() => {
-                document.getElementById("add-from-file-alert").classList.remove("alert-danger");
-                document.getElementById("add-from-file-alert").classList.remove("alert-success");
-                document.getElementById("add-from-file-alert").innerHTML = "";
-            }, time_until_a_message_fade_out)
-        }).catch(error => alert("Error: " + error));
+    //         setTimeout(() => {
+    //             document.getElementById("add-from-file-alert").classList.remove("alert-danger");
+    //             document.getElementById("add-from-file-alert").classList.remove("alert-success");
+    //             document.getElementById("add-from-file-alert").innerHTML = "";
+    //         }, time_until_a_message_fade_out)
+    //     }).catch(error => alert("Error: " + error));
 
     queries = [];
 
@@ -195,50 +191,53 @@ add_product_from_file.addEventListener("click", () => {
 });
 
 const add_category_btn = document.getElementById("add-category-manually");
-add_category_btn.addEventListener("click", () => {
+add_category_btn.addEventListener("click", async () => {
     const new_category = document.getElementById("category_name");
 
     if (new_category.value === "") return;
 
-    let data = new FormData();
-    data.append("new_category", new_category.value);
+    let data = { "category": new_category.value };
 
-    fetch("../PHP/add_category.php", {
+    const response = await fetch(`http://localhost:${PORT}/admin/addCategory`, {
         method: "POST",
-        body: data
-    })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById("add-category-alert").classList.remove("alert-danger");
-            document.getElementById("add-category-alert").classList.remove("alert-success");
-            document.getElementById("add-category-alert").innerHTML = "";
-            switch (data) {
-                case "SUCCESS":
-                    document.getElementById("add-category-alert").classList.add("alert-success");
-                    document.getElementById("add-category-alert").innerHTML = "Η κατηγορία προϊόντος προστέθηκε με επιτυχία!";
-
-                    all_categories.push(new_category.value);
-                    all_categories.sort();
-                    update_category_dropdown_menu();
-
-                    new_category.value = "";
-                    break;
-                case "DUPLICATE_ENTRY":
-                    document.getElementById("add-category-alert").classList.add("alert-danger");
-                    document.getElementById("add-category-alert").innerHTML = "Η κατηγορία υπάρχει ήδη!";
-                    break;
-                case "UNEXPECTED_ERROR":
-                    document.getElementById("add-category-alert").classList.add("alert-danger");
-                    document.getElementById("add-category-alert").innerHTML = "Συνέβη κάποιο σφάλμα. Προσπαθήστε ξανά";
-                    break;
-            }
-            setTimeout(function () {
+        body: JSON.stringify(data),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(response => response.json())
+        .then(
+            data => {
                 document.getElementById("add-category-alert").classList.remove("alert-danger");
                 document.getElementById("add-category-alert").classList.remove("alert-success");
                 document.getElementById("add-category-alert").innerHTML = "";
-            }, time_until_a_message_fade_out);
-        })
-        .catch(error => console.error("Error:", error));
+
+                switch (data.status) {
+                    case "SUCCESS":
+                        document.getElementById("add-category-alert").classList.add("alert-success");
+                        document.getElementById("add-category-alert").innerHTML = "Η κατηγορία προϊόντος προστέθηκε με επιτυχία!";
+
+                        all_categories.push(new_category.value);
+                        all_categories.sort();
+                        update_category_dropdown_menu();
+
+                        new_category.value = "";
+                        break;
+                    case "ER_DUP_ENTRY":
+                        document.getElementById("add-category-alert").classList.add("alert-danger");
+                        document.getElementById("add-category-alert").innerHTML = "Η κατηγορία υπάρχει ήδη!";
+                        break;
+                    default:
+                        document.getElementById("add-category-alert").classList.add("alert-danger");
+                        document.getElementById("add-category-alert").innerHTML = "Συνέβη κάποιο σφάλμα. Προσπαθήστε ξανά";
+                        break;
+                }
+                setTimeout(function () {
+                    document.getElementById("add-category-alert").classList.remove("alert-danger");
+                    document.getElementById("add-category-alert").classList.remove("alert-success");
+                    document.getElementById("add-category-alert").innerHTML = "";
+                }, time_until_a_message_fade_out);
+            }
+        );
 });
 
 const add_details_btn = document.getElementById("add_details");
@@ -265,7 +264,7 @@ add_details_btn.addEventListener("click", () => {
 });
 
 const add_products = document.getElementById("add_product");
-add_products.addEventListener("click", () => {
+add_products.addEventListener("click", async () => {
     const name = document.getElementById("item_name").value;
     const category = document.getElementById("category_dropdown_menu").value;
     const detail_table = document.getElementById("details_table").getElementsByTagName("tbody")[0];
@@ -273,29 +272,38 @@ add_products.addEventListener("click", () => {
 
     if (name === "") return;
 
+    let data_to_be_sent = {
+        name,
+        category,
+        "details": []
+    };
+
     for (let row of detail_table.rows) {
         let detail_name = row.getElementsByTagName("td")[0].getElementsByTagName("input")[0].value;
         let detail_value = row.getElementsByTagName("td")[1].getElementsByTagName("input")[0].value;
 
         if (detail_name === "" | detail_value === "") continue;
 
-        let query = `CALL ADD_NEW_PRODUCT('${category}', '${name}', '${detail_name}', '${detail_value}');`;
-
-        queries = [...queries, query];
+        data_to_be_sent.details.push([detail_name, detail_value]);
 
     }
 
-    let data_to_be_sent = new FormData();
-
-    data_to_be_sent.append("queries", queries.join("\n"));
-
-    fetch("../PHP/call_add_new_product.php", {
+    const response = await fetch(`http://localhost:${PORT}/admin/addProduct`, {
         method: "POST",
-        body: data_to_be_sent,
+        body: JSON.stringify(data_to_be_sent),
+        headers: {
+            'Content-Type': 'application/json'
+        }
     }).then(response => response.json())
         .then(
-            data => { alert("Τα δεδομένα εισήχθησαν επιτυχώς!"); }
+            data => {
+                switch (data.status) {
+                    case "SUCCESS":
+                        alert("Το προϊόν εισήχθη επιτυχώς");
+                }
+            }
         ).catch(error => alert("Error: " + error));
+
 
     // clean table
 
@@ -304,4 +312,9 @@ add_products.addEventListener("click", () => {
         row.getElementsByTagName("td")[0].getElementsByTagName("input")[0].value = "";
         row.getElementsByTagName("td")[1].getElementsByTagName("input")[0].value = "";
     }
+
+    const rows = detail_table.rows.length;
+
+    for (let i = 0; i < rows - 1; i++)
+        detail_table.deleteRow(0);
 });

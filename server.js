@@ -2,7 +2,11 @@ import express from "express";
 import path from "path";
 import session from 'express-session';
 import bodyParser from 'body-parser';
-import { getUser, getWarehouseLocation, signup, getProducts, alterAvailabilityProduct } from './connection.js'
+import {
+    getUser, getWarehouseLocation, signup,
+    getProducts, alterAvailabilityProduct, getProductCategories,
+    addCategory, addProduct
+} from './connection.js'
 
 const PORT = 3000;
 const app = express();
@@ -151,7 +155,27 @@ app.post("/admin/alterAvailabilityProduct", async (req, res) => {
     const result = await alterAvailabilityProduct(id, discontinued);
 
     res.status(200).send(result);
-})
+});
+
+app.get("/admin/getCategories", async (req, res) => {
+    const categories = await getProductCategories();
+
+    res.status(200).send(categories);
+});
+
+app.post("/admin/addCategory", async (req, res) => {
+
+    const result = await addCategory(req.body.category);
+
+    res.send(result);
+});
+
+app.post("/admin/addProduct", async (req, res) => {
+
+    const result = await addProduct(req.body);
+
+    res.send(result);
+});
 
 app.listen(PORT, () => {
     console.log(`Server is sunning on Port ${PORT}`);

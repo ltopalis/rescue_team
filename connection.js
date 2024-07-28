@@ -67,3 +67,41 @@ export async function alterAvailabilityProduct(id, discontinued) {
     return result;
 }
 
+export async function getProductCategories() {
+    const result = db.query(`
+        SELECT * 
+        FROM CATEGORIES`);
+
+    return result;
+}
+
+export async function addCategory(category) {
+
+    try {
+        const query = "INSERT INTO CATEGORIES VALUES (?)";
+
+        await db.query(query, [category]);
+
+        return { status: "SUCCESS" };
+    } catch (error) {
+        return { status: error.code };
+    }
+
+}
+
+export async function addProduct(product) {
+
+    const name = product.name;
+    const category = product.category;
+    const details = product.details;
+    const query = "CALL ADD_NEW_PRODUCT(?, ?, ?, ?)";
+
+    try {
+        for (let detail of details)
+            await db.query(query, [category, name, detail[0], detail[1]]);
+
+        return { status: "SUCCESS" };
+    } catch (error) {
+        return { status: error.code };
+    }
+}
