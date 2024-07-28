@@ -1,17 +1,5 @@
 "use strict"
 
-let user = JSON.parse(localStorage.getItem("user")) || { };
-
-init_user();
-
-if(user.role === "ADMIN")
-    window.location.replace('./adminPage/addRescuer.html');
-else if(user.role === "RESCUER")
-    window.location.replace('./rescuerPage/addRescuer.html');
-
-// else if(user.role !== null && user.role !== undefined)
-//     window.location.replace('./map.html');
-
 function selectRole(role) {
     document.getElementById('selectedRole').value = role;
     document.getElementById('roleDropdown').innerText = role;
@@ -19,13 +7,13 @@ function selectRole(role) {
 
 function showSection(sectionId) {
     var sections = document.querySelectorAll('section');
-    sections.forEach(function(section) {
+    sections.forEach(function (section) {
         section.classList.add('hidden');
     });
 
     var selectedSection = document.getElementById(sectionId);
     selectedSection.classList.remove('hidden');
-    
+
     document.getElementById("signup-alert").classList.remove("alert-danger");
     document.getElementById("signup-alert").classList.remove("alert-success");
     document.getElementById("signup-alert").innerHTML = "";
@@ -36,88 +24,75 @@ function showSection(sectionId) {
     clean_forms();
 }
 
-const login_form  = document.getElementById("login-form");
-const signup_form  = document.getElementById("signup-form");
+const login_form = document.getElementById("login-form");
+const signup_form = document.getElementById("signup-form");
 
-login_form.addEventListener('submit', (e) => {
+login_form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     let messages = [];
-    const username = document.getElementById("login_username").value; 
+    const username = document.getElementById("login_username").value;
     const password = document.getElementById("login_password").value;
 
     let check_value_of_user = function (str) {
-            return /^\d+$/.test(str) || str === "admin";
+        return /^\d+$/.test(str) || str === "admin";
     }
 
-    if(!check_value_of_user(username))
+    if (!check_value_of_user(username))
         messages.push("Το τηλέφωνο πρέπει να αποτελείται μόνο από αριθμούς");
-    
-    if(messages.length > 0){
+
+    if (messages.length > 0) {
         document.getElementById("login-alert").classList.remove("alert-danger");
 
         document.getElementById("login-alert").classList.add("alert-danger");
         document.getElementById("login-alert").innerHTML = messages.join(", ");
 
-        setTimeout( function() {
+        setTimeout(function () {
             document.getElementById("login-alert").classList.remove("alert-danger");
             document.getElementById("login-alert").innerHTML = "";
         }, time_until_a_message_fade_out);
     }
-    else{
-        let data = new FormData();
-        data.append("login_username", username);
-        data.append("login_password", password);
+    else {
+        let data = {
+            "login_username": username,
+            "login_password": password
+        };
 
-        fetch("./PHP/call_check_user.php", {
-            method: "POST",
-            body: data
-        }).then(response => response.json())
-        .then(
-            data => {
-                document.getElementById("login-alert").classList.remove("alert-danger");
-                if(data.info === "UNKNOWN_USER"){
-                    document.getElementById("login-alert").classList.add("alert-danger");
-                    document.getElementById("login-alert").innerHTML = "Ο χρήστης δεν υπάρχει! Πραγματοποιήστε εγγραφή."
-                }else if(data.info === "WRONG_USERNAME" || data.info === "WRONG_PASSWORD"){
-                    document.getElementById("login-alert").classList.add("alert-danger");
-                    document.getElementById("login-alert").innerHTML = "Τα στοιχεία που δώσατε είναι λανθασμένα"
-                }else if(data.info === "SUCCESS"){
-                    user.name = data.name;
-                    user.role = data.role;
-                    user.id = username;
-                    user.location = { };
-                    user.location.lat = parseFloat(data.latitude);
-                    user.location.lng = parseFloat(data.longtitude);
-                    user.warehouse_location = { };
-                    user.warehouse_location.lat = parseFloat(data.warehouse_lat);
-                    user.warehouse_location.lng = parseFloat(data.warehouse_lng);
-                    localStorage.setItem("user", JSON.stringify(user));
+        try {
+            const response = await fetch(`http://localhost:${PORT}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then(response => response.json())
+                .then(
+                    data => {
+                        if (data.info == 'SUCCESS')
+                            window.location.replace(data.path);
+                        else if (data.info == 'FAIL') {
+                            document.getElementById("login-alert").classList.add("alert-danger");
+                            document.getElementById("login-alert").innerHTML = "Ελέγξτε τα στοιχεία που δώσατε ή κάντε εγγραφή";
 
-                    if(user.role === "ADMIN")
-                        window.location.replace('./adminPage/addRescuer.html');
-                    else if(user.role === "RESCUER")
-                        window.location.replace('./rescuerPage/addRescuer.html');
-                }else{
-                    document.getElementById("login-alert").classList.add("alert-danger");
-                    document.getElementById("login-alert").innerHTML = "Προκλήθηκε σφάλμα. Ξαναπροσπαθήστε."
-                    console.log(`Unexpected Error! - ${data.info}`);
-                }
+                            setTimeout(function () {
+                                document.getElementById("login-alert").classList.remove("alert-danger");
+                                document.getElementById("login-alert").innerHTML = "";
+                            }, time_until_a_message_fade_out);
+                        }
+                    }
+                )
+                .catch(error => console.error("Error:", error));
 
-                setTimeout( function() {
-                    document.getElementById("login-alert").classList.remove("alert-danger");
-                    document.getElementById("login-alert").innerHTML = "";
-                }, time_until_a_message_fade_out);
-            }
-        )
-        .catch(error => console.error("Error:", error));
-        
+        } catch (error) {
+            console.error("Error:" + error);
+        }
+
         clean_forms();
-        
+
     }
 });
 
-signup_form.addEventListener('submit', (e) => {
+signup_form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     let messages = [];
@@ -129,95 +104,68 @@ signup_form.addEventListener('submit', (e) => {
         return /^\d+$/.test(str);
     }
 
-    if(!check_value_of_user(username))
-    messages.push("Το τηλέφωνο πρέπει να αποτελείται μόνο από αριθμούς");
+    if (!check_value_of_user(username))
+        messages.push("Το τηλέφωνο πρέπει να αποτελείται μόνο από αριθμούς");
 
-    if(messages.length > 0){
+    if (messages.length > 0) {
         document.getElementById("signup-alert").classList.remove("alert-danger");
         document.getElementById("signup-alert").classList.remove("alert-success");
-        
+
         document.getElementById("signup-alert").classList.add("alert-danger");
         document.getElementById("signup-alert").innerHTML = messages.join(", ");
 
-        setTimeout( function() {
+        setTimeout(function () {
             document.getElementById("signup-alert").classList.remove("alert-danger");
-        document.getElementById("signup-alert").classList.remove("alert-success");
+            document.getElementById("signup-alert").classList.remove("alert-success");
             document.getElementById("signup-alert").innerHTML = "";
         }, time_until_a_message_fade_out);
     }
     else {
-        // LET'S CHECK IT AGAIN
-        let loc;
-        
-        if(document.getElementById("checkboxLocation").checked)
-            calculate_the_position();
-        else{
-            if("geolocation" in navigator) {
+
+        let userData = {
+            "signup_name": name,
+            "signup_username": username,
+            "signup_password": password,
+            "signup_role": "CITIZEN",
+            "longtitude": undefined,
+            "latitude": undefined
+        };
+
+        if (document.getElementById("checkboxLocation").checked) {
+            const response = fetch(`http://localhost:${PORT}/calculateCitizenPosition`, {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            }).then(responce => responce.json())
+                .then(
+                    data => {
+                        userData.longtitude = data.longtitude;
+                        userData.latitude = data.latitude;
+
+                        addUser(userData);
+                    }
+                );
+        }
+        else {
+            if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(
                     position => {
-                        let c_loc = [];
-                        c_loc[1] = position.coords.latitude;
-                        c_loc[0] = position.coords.longitude;
-                        localStorage.setItem("current_location", JSON.stringify(c_loc));
+                        userData.latitude = position.coords.latitude;
+                        userData.longtitude = position.coords.longitude;
+
+                        addUser(userData);
                     },
                     error => {
                         console.error(`Error getting location: ${error.message}`);
                     }
                 );
-            }else {
+            } else {
                 console.error("Geolocation is not supported by your browser");
             }
         }
 
-        loc = JSON.parse(localStorage.getItem("current_location"));
-        console.log(loc);
-
-        let data = new FormData();
-        
-        data.append("signup_name", name);
-        data.append("signup_username", username);
-        data.append("signup_password", password);
-        data.append("longtitude", loc[1]);
-        data.append("latitude", loc[0]);
-
-        fetch("../PHP/call_add_user.php", {
-            method: "POST",
-            body: data
-        }).then(response => response.json())
-        .then(
-            data => {
-                document.getElementById("signup-alert").classList.remove("alert-danger");
-                document.getElementById("signup-alert").classList.remove("alert-success");
-                switch(data){
-                    case "SUCCESS":
-                        document.getElementById("signup-alert").classList.add("alert-success");
-                        document.getElementById("signup-alert").innerHTML = "Η εγγραφή πραγματοποιήθηκε με επιτυχία!";
-                        for(let elem of signup_form.elements)
-                            elem.value = "";
-                        break;
-                    case "DUPLICATE_ENTRY":
-                        document.getElementById("signup-alert").classList.add("alert-danger");
-                        document.getElementById("signup-alert").innerHTML = "Ο χρήστης υπάρχει ήδη! Πραγματοποιήστε σύνδεση";
-                        break;
-                    case "UNEXPECTED_ERROR":
-                        document.getElementById("signup-alert").classList.add("alert-danger");
-                        document.getElementById("signup-alert").innerHTML = "Συνέβη κάποιο σφάλμα. Προσπαθήστε ξανά";
-                        break;
-                    default:
-                        console.log("I HAVE NO IDEA!" + data);
-                }
-                
-                setTimeout( function() {
-                    document.getElementById("signup-alert").classList.remove("alert-danger");
-                    document.getElementById("signup-alert").classList.remove("alert-success");
-                    document.getElementById("signup-alert").innerHTML = "";
-                }, time_until_a_message_fade_out);
-            }
-        )
-        .catch(error => console.error("Error:", error));
-
         clean_forms();
-        localStorage.setItem("current_location", JSON.stringify([]));
     }
 })
 
