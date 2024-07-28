@@ -36,6 +36,16 @@ app.get("/", (req, res) => {
         res.status(200).sendFile(path.join(__dirname, "login.html"));
 });
 
+app.post("/validatePage/", (req, res) => {
+    const requestedPage = req.body.page;
+    const requestedUser = req.session.userData ? req.session.userData.role : null;
+
+    if(requestedPage == requestedUser)
+        res.status(200).send({ info: "Access granded" });
+    else
+        res.status(500).send({ info: "Access denied" });
+});
+
 app.get("/logout", async (req, res) => {
     req.session.destroy();
 
@@ -115,7 +125,7 @@ app.post("/signup", async (req, res) => {
 app.get("/logout", async (req, res) => {
 
     req.session.destroy(error => {
-        if(error)
+        if (error)
             return req.status(500).send("ERROR LOGOUT");
 
         res.clearCookie(cookie_name);

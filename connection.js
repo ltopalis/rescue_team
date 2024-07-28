@@ -43,6 +43,4 @@ export async function signup(username, password, name, role, lat, lng) {
     }
 }
 
-const loc = await getWarehouseLocation();
-console.log(loc);
 

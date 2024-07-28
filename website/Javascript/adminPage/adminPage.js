@@ -1,5 +1,7 @@
 "use strict"
 
+pageAccess("ADMIN");
+
 const add_rescuer_form = document.getElementById("add-rescuer-form");
 
 add_rescuer_form.addEventListener("submit", (e) => {

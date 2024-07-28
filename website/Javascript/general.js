@@ -1,22 +1,24 @@
 "use strict"
 
+
 const time_until_a_message_fade_out = 1000 * 60; // 15 seconds
 const number_of_products_per_page = 10;
 
 const PORT = 3000;
 
-function init_user() {
-    fetch("./PHP/get_warehouse_location.php", {
-        method: "POST"
-    }).then(response => response.json())
-        .then(
-            data => {
-                user.warehouse_location = {};
-                user.warehouse_location.lat = parseFloat(data.lat);
-                user.warehouse_location.lng = parseFloat(data.lng);
-            }
-        )
-        .catch(error => console.error("Error:", error));
+async function pageAccess(page) {
+    const response = await fetch(`http://localhost:${PORT}/validatePage`, {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ "page": page })
+    });
+
+    if(response.status == 500) {
+        alert("Δεν έχετε πρόσβαση σε αυτήν την σελίδα");
+        window.location.replace("/");
+    }
 }
 
 function clean_forms() {
