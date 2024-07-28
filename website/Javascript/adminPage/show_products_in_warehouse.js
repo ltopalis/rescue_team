@@ -37,34 +37,6 @@ const response = fetch(`http://localhost:${PORT}/admin/getProducts`, {
         }
     );
 
-// fetch("../PHP/show_products_in_warehouse.php", {
-//     method: "GET"
-// }).then(response => response.json())
-//     .then(
-//         data => {
-//             for (let product of data) {
-//                 product["edited"] = false;
-//                 if (all_products[product.ID] === undefined) {
-//                     let prod = [];
-//                     prod['id'] = product.ID;
-//                     prod['product_name'] = product.PRODUCT_NAME;
-//                     prod['category'] = product.CATEGORY;
-//                     prod['details'] = [];
-//                     prod['quantity'] = { old: product.AMOUNT, new: undefined };
-//                     prod['edited'] = product.edited
-//                     prod['discontinued'] = product.DISCONTINUED == true ? true : false;
-//                     prod['details'].push([product.DETAIL_NAME, product.DETAIL_VALUE]);
-//                     all_products[product.ID] = prod;
-//                 }
-//                 else {
-//                     all_products[product.ID]['details'].push([product.DETAIL_NAME, product.DETAIL_VALUE]);
-//                 }
-//             }
-//             if (all_products.length > 1) all_products.sort((a, b) => a['product_name'].localeCompare(b['product_name']));
-//             add_products_to_table();
-//         }
-//     ).catch(error => console.error(`Error: ${error}`));
-
 function add_products_to_table() {
     table_data.innerHTML = "";
 
@@ -186,7 +158,7 @@ function toogle_deleted_field() {
 const save_btn = document.getElementById("save-new-values");
 const cancel_btn = document.getElementById("cancel-new-values");
 
-save_btn.addEventListener("click", e => {
+save_btn.addEventListener("click", async (e) => {
     e.preventDefault();
 
     let dataToSend = [];
@@ -201,22 +173,15 @@ save_btn.addEventListener("click", e => {
         }
 
         if (dataToSend.length > 0) {
-            const jsonData = JSON.stringify(dataToSend);
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", "../PHP/update_amount_in_warehouse.php", true);
-            xhr.setRequestHeader('Content-type', 'application/json');
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-
-                    if (xhr.responseText !== "Success") {
-                        alert("Προέκυψε πρόβλημα. Ξαναπροσπαθήστε!");
-                        console.error(xhr.responseText);
-                    }
-                }
-            };
-
-            xhr.send(jsonData);
+            const response = await fetch(`http://localhost:${PORT}/admin/updateAmount`, {
+                method: "POST",
+                body: JSON.stringify(dataToSend),
+                headers: {
+                    'Content-type': 'application/json'
+                },
+            });
         }
+
         checkbox.checked = false;
         add_products_to_table();
     }

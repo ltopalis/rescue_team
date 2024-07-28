@@ -105,3 +105,12 @@ export async function addProduct(product) {
         return { status: error.code };
     }
 }
+
+export async function updateProductAmount(prod_id, amount) {
+    const response = await db.query(`
+        UPDATE WAREHOUSE
+        SET AMOUNT = ? 
+        WHERE WAREHOUSE.PRODUCT = ?`, [amount, prod_id]);
+
+    return response;
+}

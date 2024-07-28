@@ -5,7 +5,7 @@ import bodyParser from 'body-parser';
 import {
     getUser, getWarehouseLocation, signup,
     getProducts, alterAvailabilityProduct, getProductCategories,
-    addCategory, addProduct
+    addCategory, addProduct, updateProductAmount
 } from './connection.js'
 
 const PORT = 3000;
@@ -176,6 +176,13 @@ app.post("/admin/addProduct", async (req, res) => {
 
     res.send(result);
 });
+
+app.post("/admin/updateAmount", async (req, res) => {
+    for (let prod of req.body)
+        await updateProductAmount(prod.id, prod.amount);
+
+    res.sendStatus(200);
+})
 
 app.listen(PORT, () => {
     console.log(`Server is sunning on Port ${PORT}`);
