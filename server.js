@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import session from 'express-session';
 import bodyParser from 'body-parser';
-import { getUser, getWarehouseLocation, signup } from './connection.js'
+import { getUser, getWarehouseLocation, signup, getProducts, alterAvailabilityProduct } from './connection.js'
 
 const PORT = 3000;
 const app = express();
@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 app.use(session({
     name: cookie_name,
     secret: 'secret-key',
-    cookie: { maxAge: 1000 * 30 }, // 30 seconds
+    cookie: { maxAge: 1000 * 60 * 30 }, // 30 minutes
     saveUninitialized: false,
 }));
 
@@ -40,7 +40,7 @@ app.post("/validatePage/", (req, res) => {
     const requestedPage = req.body.page;
     const requestedUser = req.session.userData ? req.session.userData.role : null;
 
-    if(requestedPage == requestedUser)
+    if (requestedPage == requestedUser)
         res.status(200).send({ info: "Access granded" });
     else
         res.status(500).send({ info: "Access denied" });
@@ -122,7 +122,7 @@ app.post("/signup", async (req, res) => {
 
 });
 
-app.get("/logout", async (req, res) => {
+app.get("/logout", (req, res) => {
 
     req.session.destroy(error => {
         if (error)
@@ -138,7 +138,20 @@ app.get("/logout", async (req, res) => {
 ///////////////////// ADMIN /////////////////////
 /////////////////////////////////////////////////
 
+app.get("/admin/getProducts", async (req, res) => {
+    const products = await getProducts();
 
+    res.send(JSON.stringify(products));
+});
+
+app.post("/admin/alterAvailabilityProduct", async (req, res) => {
+    const id = req.body.id;
+    const discontinued = req.body.discontinued;
+
+    const result = await alterAvailabilityProduct(id, discontinued);
+
+    res.status(200).send(result);
+})
 
 app.listen(PORT, () => {
     console.log(`Server is sunning on Port ${PORT}`);

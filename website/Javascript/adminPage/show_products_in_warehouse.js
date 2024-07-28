@@ -1,10 +1,6 @@
 "use strict"
 
-let user = JSON.parse(localStorage.getItem("user")) || {};
-if (user.role === null || user.role === undefined)
-    window.location.replace('../index.html');
-else if (user.role !== "ADMIN")
-    alert("Δεν έχετε πρόσβαση σε αυτήν την σελίδα!");
+pageAccess("ADMIN");
 
 let all_products = [];
 const table_data = document.getElementById("table-of-products").getElementsByTagName("tbody")[0];
@@ -12,7 +8,7 @@ const checkbox = document.getElementById("editable-checkbox");
 
 checkbox.checked = false;
 
-fetch("../PHP/show_products_in_warehouse.php", {
+const response = fetch(`http://localhost:${PORT}/admin/getProducts`, {
     method: "GET"
 }).then(response => response.json())
     .then(
@@ -35,10 +31,39 @@ fetch("../PHP/show_products_in_warehouse.php", {
                     all_products[product.ID]['details'].push([product.DETAIL_NAME, product.DETAIL_VALUE]);
                 }
             }
+
             if (all_products.length > 1) all_products.sort((a, b) => a['product_name'].localeCompare(b['product_name']));
             add_products_to_table();
         }
-    ).catch(error => console.error(`Error: ${error}`));
+    );
+
+// fetch("../PHP/show_products_in_warehouse.php", {
+//     method: "GET"
+// }).then(response => response.json())
+//     .then(
+//         data => {
+//             for (let product of data) {
+//                 product["edited"] = false;
+//                 if (all_products[product.ID] === undefined) {
+//                     let prod = [];
+//                     prod['id'] = product.ID;
+//                     prod['product_name'] = product.PRODUCT_NAME;
+//                     prod['category'] = product.CATEGORY;
+//                     prod['details'] = [];
+//                     prod['quantity'] = { old: product.AMOUNT, new: undefined };
+//                     prod['edited'] = product.edited
+//                     prod['discontinued'] = product.DISCONTINUED == true ? true : false;
+//                     prod['details'].push([product.DETAIL_NAME, product.DETAIL_VALUE]);
+//                     all_products[product.ID] = prod;
+//                 }
+//                 else {
+//                     all_products[product.ID]['details'].push([product.DETAIL_NAME, product.DETAIL_VALUE]);
+//                 }
+//             }
+//             if (all_products.length > 1) all_products.sort((a, b) => a['product_name'].localeCompare(b['product_name']));
+//             add_products_to_table();
+//         }
+//     ).catch(error => console.error(`Error: ${error}`));
 
 function add_products_to_table() {
     table_data.innerHTML = "";
@@ -64,33 +89,30 @@ function add_products_to_table() {
 
         let deleteButton = document.createElement("button");
         deleteButton.setAttribute("id", `deleteButton_${all_products[i]["id"]}`);
-        deleteButton.addEventListener("click", () => {
+        deleteButton.addEventListener("click", async () => {
             const prod_id = deleteButton.id.split("_")[1];
             const prod = all_products.filter(prod => prod["id"] == prod_id)[0];
 
             if (deletedSwitch == false ? window.confirm("Είσαι σίγουρος ότι θέλεις να διαγράψεις το προϊόν;") == true : window.confirm("Είσαι σίγουρος ότι θέλεις να επαναφέρεις το προϊόν;") == true) {
                 prod['discontinued'] = deletedSwitch == false ? true : false;
 
-                const dataToSend = [{ 'id': prod['id'], 'discontinued': prod['discontinued'] == true ? 1 : 0 }];
+                const dataToSend = { 'id': prod['id'], 'discontinued': prod['discontinued'] == true ? 1 : 0 };
 
-                const jsonData = JSON.stringify(dataToSend);
-                const xhr = new XMLHttpRequest();
-                xhr.open("POST", "../PHP/update_product_availability.php", true);
-                xhr.setRequestHeader('Content-type', 'application/json');
+                const response = await fetch(`http://localhost:${PORT}/admin/alterAvailabilityProduct`, {
+                    method: "POST",
+                    headers: {
+                        'Content-type': 'application/json'
+                    },
+                    body: JSON.stringify(dataToSend)
+                });
 
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState == 4 && xhr.status == 200) {
+                if (response.status == 200 && response.statusText == "OK")
+                    alert("Επιτυχής ανανέωση ποσοτήτων");
+                else {
+                    alert("Προέκυψε πρόβλημα. Ξαναπροσπαθήστε!");
+                    console.error(xhr.responseText);
+                }
 
-                        if (xhr.responseText === "Success")
-                            alert("Επιτυχής ανανέωση ποσοτήτων");
-                        else {
-                            alert("Προέκυψε πρόβλημα. Ξαναπροσπαθήστε!");
-                            console.error(xhr.responseText);
-                        }
-                    }
-                };
-
-                xhr.send(jsonData);
                 add_products_to_table();
             }
         });

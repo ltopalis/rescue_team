@@ -2,7 +2,6 @@
 
 
 const time_until_a_message_fade_out = 1000 * 60; // 15 seconds
-const number_of_products_per_page = 10;
 
 const PORT = 3000;
 
@@ -15,7 +14,7 @@ async function pageAccess(page) {
         body: JSON.stringify({ "page": page })
     });
 
-    if(response.status == 500) {
+    if (response.status == 500) {
         alert("Δεν έχετε πρόσβαση σε αυτήν την σελίδα");
         window.location.replace("/");
     }
@@ -76,7 +75,7 @@ async function logout() {
         method: "GET"
     });
 
-    if(response.ok)
+    if (response.ok)
         window.location.replace("/");
 }
 

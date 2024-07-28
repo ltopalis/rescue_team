@@ -43,4 +43,27 @@ export async function signup(username, password, name, role, lat, lng) {
     }
 }
 
+/////////////////////////////////////////////////
+///////////////////// ADMIN /////////////////////
+/////////////////////////////////////////////////
+
+export async function getProducts() {
+    const query = `SELECT PRODUCTS.ID, PRODUCT_NAME, CATEGORY, DETAIL_NAME, DETAIL_VALUE, AMOUNT, DISCONTINUED
+FROM PRODUCTS 
+	JOIN CATEGORIES ON PRODUCTS.CATEGORY = CATEGORIES.CATEGORY_NAME
+    LEFT JOIN DETAILS_OF_PRODUCTS ON DETAILS_OF_PRODUCTS.PRODUCT = PRODUCTS.ID
+    JOIN WAREHOUSE ON WAREHOUSE.PRODUCT = PRODUCTS.ID`;
+
+    const [products] = await db.query(query);
+
+    return products;
+}
+
+export async function alterAvailabilityProduct(id, discontinued) {
+    const query = `UPDATE PRODUCTS SET DISCONTINUED = ? WHERE PRODUCTS.ID = ?`;
+
+    const result = db.query(query, [discontinued, id]);
+
+    return result;
+}
 
