@@ -2,7 +2,7 @@
 
 pageAccess("ADMIN");
 
-const add_rescuer_form = document.getElementById("add-rescuer-form");
+const add_rescuer_form = document.getElementById("signup-form");
 
 add_rescuer_form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -33,14 +33,31 @@ add_rescuer_form.addEventListener("submit", (e) => {
         }, time_until_a_message_fade_out);
     }
     else{
-        calculate_the_position();
 
-        let data = new FormData();
-        data.append("phone", phone);
-        data.append("password", password);
-        data.append("name", name);
-        data.append("longtitude", location[1]);
-        data.append("latitude", location[0]);
+        let userData = {
+            "signup_name": name,
+            "signup_username": phone,
+            "signup_password": password,
+            "signup_role": "RESCUER",
+            "longtitude": undefined,
+            "latitude": undefined
+        }
+
+        const response = fetch(`http://localhost:${PORT}/calculateCitizenPosition`, {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        }).then(responce => responce.json())
+            .then(
+                data => {
+                    userData.longtitude = data.longtitude;
+                    userData.latitude = data.latitude;
+
+                    addUser(userData);
+                }
+            );
+
 
         // fetch("../PHP/addRescuer.php", {
         //     method: "POST",

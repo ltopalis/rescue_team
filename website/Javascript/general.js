@@ -30,6 +30,8 @@ function clean_forms() {
 }
 
 function addUser(data) {
+    const signup_form = document.getElementById("signup-form");
+
     const response = fetch(`http://localhost:${PORT}/signup`, {
         method: "POST",
         headers: {
@@ -50,7 +52,7 @@ function addUser(data) {
                         break;
                     case "ER_DUP_ENTRY":
                         document.getElementById("signup-alert").classList.add("alert-danger");
-                        document.getElementById("signup-alert").innerHTML = "Ο χρήστης υπάρχει ήδη! Πραγματοποιήστε σύνδεση";
+                        document.getElementById("signup-alert").innerHTML = "Ο χρήστης υπάρχει ήδη!";
                         break;
                     case "UNEXPECTED_ERROR":
                         document.getElementById("signup-alert").classList.add("alert-danger");
