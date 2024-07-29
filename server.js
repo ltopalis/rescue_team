@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import session from 'express-session';
 import bodyParser from 'body-parser';
+import http from 'http';
 import {
     getUser, getWarehouseLocation, signup,
     getProducts, alterAvailabilityProduct, getProductCategories,
@@ -173,7 +174,7 @@ app.post("/admin/addCategory", async (req, res) => {
 app.post("/admin/addProduct", async (req, res) => {
 
     const result = await addProduct(req.body);
-    
+
     res.send(result);
 });
 
@@ -182,7 +183,70 @@ app.post("/admin/updateAmount", async (req, res) => {
         await updateProductAmount(prod.id, prod.amount);
 
     res.sendStatus(200);
-})
+});
+
+app.post("/admin/getDataFromURL", async (req, gres) => {
+
+    try {
+
+        const url = new URL(req.body.url);
+
+        const options = {
+            hostname: url.hostname,
+            port: url.port || (url.protocol == 'http:' ? 80 : 443),
+            path: url.pathname,
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+
+        const response = http.request(options, res => {
+            let data = '';
+
+            res.on('data', chunk => {
+                data += chunk;
+            });
+
+            res.on('end', async () => {
+                data = JSON.parse(data);
+
+                let categories = [];
+                let items = [];
+
+                for (let category of data.categories)
+                    categories[category.id] = category.category_name;
+
+                for (let item of data.items)
+                    items.push({
+                        name: item.name,
+                        category: categories[item.category],
+                        details: item.details
+                    });
+
+                const result = await addProduct(items);
+
+                gres.send(result)
+            });
+        });
+
+        response.on("error", error =>
+            gres.send({
+                error: {
+                    code: error.code
+                }
+            })
+        );
+
+        response.end();
+
+    } catch (error) {
+        gres.send({ error });
+    }
+
+
+
+});
 
 app.listen(PORT, () => {
     console.log(`Server is sunning on Port ${PORT}`);

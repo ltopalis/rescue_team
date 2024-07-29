@@ -43,45 +43,45 @@ async function add_product(data) {
     }).then(response => response.json())
         .then(
             data => {
-                if(data.status == "SUCCESS") 
+                if (data.status == "SUCCESS")
                     alert("Τα δεδομένα εισήχθησαν επιτυχώς");
                 else
                     alert("Προέκυψε κάποιο πρόβλημα με την εισαγωγή των δεδομένων");
             }
         );
 
-
 }
 
 const add_product_from_url = document.getElementById("add-product-from-url");
 const add_product_from_file = document.getElementById("add-product-from-file");
 
-// NOT WORKING
-
-
-
-add_product_from_url.addEventListener("click", () => {
+add_product_from_url.addEventListener("click", async () => {
     const url = document.getElementById("txtUrl").value;
 
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Network response was not ok");
+    const response = await fetch(`http://localhost:${PORT}/admin/getDataFromURL`, {
+        body: JSON.stringify({ url }),
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(response => response.json())
+        .then(
+            data => {
+                if (data.error) {
+                    if (data.error.code == "ERR_INVALID_URL")
+                        alert("Ελέγξτε την μορφή του url και ξαναπροσπαθήστε");
+                    else if (data.error.code == "ENOTFOUND")
+                        alert("Tο url που δόθηκε δεν υπάρχει");
+                }
+                else {
+                    alert("Επιτυχής εισαγωγή δεδομένων");
+                    document.getElementById("txtUrl").value = '';
+                }
             }
-            // return response.json();
-        })
-        .then(data => {
-            console.log(data);
-        })
-        .catch(error => {
-            console.error(`Error fetching the JSON: ${error}`);
-        });
 
-    // document.getElementById("txtUrl").value = "";
+        );
 
-    // let r_value = add_product(url);
 
-    // console.log(r_value);
 });
 
 add_product_from_file.addEventListener("click", () => {
@@ -101,7 +101,7 @@ add_product_from_file.addEventListener("click", () => {
                     for (let category of file.categories)
                         categories[category.id] = category.category_name;
 
-                    for (let item of file.items) 
+                    for (let item of file.items)
                         data.push({
                             name: item.name,
                             category: categories[item.category],

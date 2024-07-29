@@ -91,9 +91,6 @@ export async function addCategory(category) {
 
 export async function addProduct(products) {
 
-    console.log("PRODUCTS: ")
-    console.log(products)
-
     const query = "CALL ADD_NEW_PRODUCT2(?, ?, ?, ?)";
 
     try {
