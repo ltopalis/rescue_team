@@ -30,6 +30,15 @@ export async function getWarehouseLocation() {
     return location[0];
 }
 
+export async function updatePosition(username, position) {
+    const { response } = await db.query(`
+        UPDATE LOCATIONS 
+        SET LONGTITUDE = ?, LATITUDE = ?
+        WHERE USER = ?`, [position.lng, position.lat, username]);
+
+    return response;
+}
+
 export async function signup(username, password, name, role, lat, lng) {
     try {
         const query = `CALL ADD_USER(?,?,?,?,?,?)`;
@@ -119,4 +128,28 @@ export async function updateProductAmount(prod_id, amount) {
         WHERE WAREHOUSE.PRODUCT = ?`, [amount, prod_id]);
 
     return response;
+}
+
+/////////////////////////////////////////////////
+//////////////////// RESCUER ////////////////////
+/////////////////////////////////////////////////
+
+export async function initRescuer(username) {
+    let data = {};
+
+    let [response] = await db.query(`
+        SELECT LONGTITUDE, LATITUDE
+        FROM LOCATIONS
+        WHERE USER = ?`, [username]);
+
+    data.myPos = { lat: response[0].LATITUDE, lng: response[0].LONGTITUDE };
+
+    [response] = await db.query(`
+        SELECT LONGTITUDE, LATITUDE
+        FROM LOCATIONS
+        WHERE USER = ?`, ["ADMIN"]);
+
+    data.warehouse = { lat: response[0].LATITUDE, lng: response[0].LONGTITUDE };
+
+    return data;
 }

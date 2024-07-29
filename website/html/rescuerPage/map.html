@@ -4,63 +4,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>χαρτης</title>
+    <title>Document</title>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
-
-    <script src="../Javascript/general.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
-        crossorigin="anonymous"></script>
-
+    <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="../CSS/mapStyle.css">
-    <!-- Leaflet JavaScript -->
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <!-- Leaflet.Draggable JavaScript -->
-    <script src="https://unpkg.com/leaflet-geometryutil"></script>
+    <script defer src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-    <script src="https://unpkg.com/leaflet"></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script defer src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
+    <link rel="stylesheet" href="../../CSS/rescuerPage/mapStyle.css" />
+    <script src="../../JavaScript/general.js"></script>
+    <script defer src="../../JavaScript/rescuerPage/mapPage.js"></script>
+    <script defer src="../../JavaScript/map.js"></script>
 
 </head>
 
-
 <body>
 
-    <!-- navbar -->
-    <nav class="navbar navbar-expand-md navbar-light">
-        <div class="container-xxl">
-            <span class="fw-bold text-secondary">
-                Let's give a name!
-            </span>
-            <!-- toggle button for mibile nav -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-nav"
-                aria-controls="main-nav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <!-- navbar links -->
-            <div class="collapse navbar-collapse justify-content-end align-center" id="main-nav">
-                <ul class="navbar-nav">
-
-                    <li class="nav-item ms-2 d-none d-md-inline">
-                        <a type="button" class="btn btn-secondary" onclick="logout()">Έξοδος</a>
-                    </li>
-
-                    <li class="nav-item d-md-none">
-                        <a href="" class="nav-link" onclick="logout()">Έξοδος</a>
-                    </li>
-                </ul>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-6">
+                <div id="map"></div>
+            </div>
+            <div class="col-6">
+                <!-- Add your content for the right half of the screen here -->
+                <h1>Right Side Content</h1>
+                <p>This is where you can add your additional content for the right half of the screen.</p>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <div id="map"></div>
-
-
-    <script src="../Javascript/map.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 </body>
 
 </html>

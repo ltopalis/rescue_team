@@ -6,7 +6,8 @@ import http from 'http';
 import {
     getUser, getWarehouseLocation, signup,
     getProducts, alterAvailabilityProduct, getProductCategories,
-    addCategory, addProduct, updateProductAmount
+    addCategory, addProduct, updateProductAmount,
+    initRescuer, updatePosition
 } from './connection.js'
 
 const PORT = 3000;
@@ -56,6 +57,15 @@ app.get("/logout", async (req, res) => {
 
     res.sendStatus(200);
 });
+
+app.post("/updatePosition", async (req, res) => {
+    if (req.session.userData) {
+        const response = await updatePosition(req.session.userData.username, req.body.position);
+
+        res.sendStatus(200);
+    }
+    else res.sendStatus(500);
+})
 
 app.post("/login", async (req, res) => {
     const user = await getUser(req.body.login_username, req.body.login_password);
@@ -110,6 +120,19 @@ app.get("/calculateCitizenPosition", async (req, res) => {
     let longtitude = loc.LONGTITUDE + (Math.random() - 0.5) * 2 * (radius / (111.32 * Math.cos((Math.PI / 180) * loc.LATITUDE)));
 
     res.send(JSON.stringify({ latitude, longtitude }));
+
+});
+
+app.get("/getMyPosition", async (req, res) => {
+
+    if (req.session.userData)
+
+        res.status(200).send({
+            lat: req.session.userData.lat,
+            lng: req.session.userData.lng
+        });
+    else
+        res.sendStatus(500);
 
 });
 
@@ -243,9 +266,25 @@ app.post("/admin/getDataFromURL", async (req, gres) => {
     } catch (error) {
         gres.send({ error });
     }
+});
 
 
+/////////////////////////////////////////////////
+//////////////////// RESCUER ////////////////////
+/////////////////////////////////////////////////
 
+app.get("/rescuer/init", async (req, res) => {
+
+    if (req.session.userData) {
+        const result = await initRescuer(req.session.userData.username);
+
+        result.username = req.session.userData.username;
+        result.name = req.session.userData.name;
+
+        res.status(200).send(result);
+    }
+    else
+        res.sendStatus(500);
 });
 
 app.listen(PORT, () => {
