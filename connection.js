@@ -89,21 +89,30 @@ export async function addCategory(category) {
 
 }
 
-export async function addProduct(product) {
+export async function addProduct(products) {
 
-    const name = product.name;
-    const category = product.category;
-    const details = product.details;
-    const query = "CALL ADD_NEW_PRODUCT(?, ?, ?, ?)";
+    console.log("PRODUCTS: ")
+    console.log(products)
+
+    const query = "CALL ADD_NEW_PRODUCT2(?, ?, ?, ?)";
 
     try {
-        for (let detail of details)
-            await db.query(query, [category, name, detail[0], detail[1]]);
+
+        for (let prod of products) {
+            let name = prod.name;
+            let category = prod.category;
+            let details = prod.details;
+
+            for (let detail of details)
+                await db.query(query, [category, name, detail.detail_name, detail.detail_value]);
+        }
 
         return { status: "SUCCESS" };
+
     } catch (error) {
         return { status: error.code };
     }
+
 }
 
 export async function updateProductAmount(prod_id, amount) {

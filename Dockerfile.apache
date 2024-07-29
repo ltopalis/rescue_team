@@ -1,7 +1,0 @@
-FROM php:apache
-
-# Install mysqli extension
-RUN docker-php-ext-install mysqli
-
-# Restart Apache to apply changes
-RUN service apache2 restart

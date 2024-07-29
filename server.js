@@ -173,7 +173,7 @@ app.post("/admin/addCategory", async (req, res) => {
 app.post("/admin/addProduct", async (req, res) => {
 
     const result = await addProduct(req.body);
-
+    
     res.send(result);
 });
 
