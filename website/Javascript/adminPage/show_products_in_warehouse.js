@@ -61,6 +61,9 @@ function add_products_to_table() {
 
         let deleteButton = document.createElement("button");
         deleteButton.setAttribute("id", `deleteButton_${all_products[i]["id"]}`);
+        deleteButton.setAttribute("data-bs-toggle", "tooltip");
+        deleteButton.setAttribute("data-bs-placement", "top");
+        deleteButton.setAttribute("title", (deletedSwitch == false ? "Διαγραφή" : "Επαναφορά"));
         deleteButton.addEventListener("click", async () => {
             const prod_id = deleteButton.id.split("_")[1];
             const prod = all_products.filter(prod => prod["id"] == prod_id)[0];

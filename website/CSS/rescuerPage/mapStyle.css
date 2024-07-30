@@ -1,4 +1,45 @@
 #map {
-    height: 100vh;
+    height: 90vh;
     width: 100%;
+}
+
+.card {
+    width: 15rem;
+    height: 14rem;
+    margin: 5px;
+    /* background-color: #FFFBFF; */
+    background-color: #EDF0F7;
+}
+
+.btn-success,
+.btn-danger {
+    width: 7rem;
+    font-size: 0.8rem;
+
+}
+
+#tasksPanel {
+    height: 70vh;
+    overflow-y: auto;
+    /* Scroll if content overflows */
+}
+
+#controllers {
+    height: 20vh;
+    display: block;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+}
+
+.btn#load,
+.btn#unload {
+    width: 7rem;
+}
+
+.col-4 {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }

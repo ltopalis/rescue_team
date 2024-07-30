@@ -41,9 +41,9 @@ export async function updatePosition(username, position) {
 
 export async function signup(username, password, name, role, lat, lng) {
     try {
-        const query = `CALL ADD_USER(?,?,?,?,?,?)`;
-
-        await db.execute(query, [username, password, name, role, lat, lng]);
+        const query = `CALL ADD_USER(?,?,?,?,?,?,?)`;
+        
+        await db.execute(query, [username, password, name, role, (role === "RESCUER" ? 0 : null), lat, lng]);
 
         return { status: "SUCCESS" }
 
