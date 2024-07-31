@@ -85,7 +85,7 @@ function add_products_to_table() {
                     alert("Επιτυχής ανανέωση ποσοτήτων");
                 else {
                     alert("Προέκυψε πρόβλημα. Ξαναπροσπαθήστε!");
-                    console.error(xhr.responseText);
+                    consoel.log(response);
                 }
 
                 add_products_to_table();

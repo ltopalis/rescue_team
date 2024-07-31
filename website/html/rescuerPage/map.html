@@ -13,6 +13,9 @@
     <!-- Bootstrap -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script defer src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+        crossorigin="anonymous"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
 
@@ -68,10 +71,41 @@
                 </div>
 
                 <div class="d-block justify-content-center" id="controllers">
-                    <a class="btn btn-info me-2" id="load">Φόρτωση</a>
+                    <a class="btn btn-info me-2" id="load" data-bs-toggle="modal"
+                        data-bs-target="#warehouse-products">Φόρτωση</a>
                     <a class="btn btn-info" id="unload">Εκφόρτωση</a>
                 </div>
+            </div>
+        </div>
+    </div>
 
+    <div class="modal fade" id="warehouse-products" tabindex="-1" aria-labelledby="modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content ">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal-title">Φόρτωση προϊόντων</h5>
+                    <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modal-body">
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Όνομα προϊόντος</th>
+                                <th scope="col">Απόθεμα</th>
+                                <th scope="col">Ποσότητα</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ακύρωση</button>
+                    <button type="button" class="btn btn-primary" onclick="loadToVan()">Φόρτωση</button>
+                </div>
             </div>
         </div>
     </div>

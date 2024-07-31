@@ -42,7 +42,7 @@ export async function updatePosition(username, position) {
 export async function signup(username, password, name, role, lat, lng) {
     try {
         const query = `CALL ADD_USER(?,?,?,?,?,?,?)`;
-        
+
         await db.execute(query, [username, password, name, role, (role === "RESCUER" ? 0 : null), lat, lng]);
 
         return { status: "SUCCESS" }
@@ -151,5 +151,27 @@ export async function initRescuer(username) {
 
     data.warehouse = { lat: response[0].LATITUDE, lng: response[0].LONGTITUDE };
 
+    [response] = await db.query(`
+        SELECT amount, product, CATEGORY, PRODUCT_NAME
+        FROM VAN_LOAD JOIN PRODUCTS
+            ON VAN_LOAD.product = PRODUCTS.ID
+        WHERE VAN_LOAD.rescuer = ?`, [username]);
+
+    data.load = [];
+    for (let pro of response)
+        data.load.push({ id: pro.product, name: pro.PRODUCT_NAME, category: pro.CATEGORY, amount: pro.amount });
+
     return data;
+}
+
+export async function unloadProducts(data) {
+    let [response] = await db.query(`CALL UNLOAD_PRODUCTS(?,?,?)`, [data.id, data.amount, data.rescuer]);
+
+    return response;
+}
+
+export async function getWarehouseProducts() {
+    const response = await db.query("SELECT ID, PRODUCT_NAME, AMOUNT FROM WAREHOUSE JOIN PRODUCTS ON WAREHOUSE.PRODUCT = PRODUCTS.ID WHERE PRODUCTS.DISCONTINUED = 0 AND WAREHOUSE.AMOUNT != 0");
+
+    return response;
 }

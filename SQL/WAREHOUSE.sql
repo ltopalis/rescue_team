@@ -24,6 +24,15 @@ CREATE TABLE IF NOT EXISTS WAREHOUSE(
                                     
                                     FOREIGN KEY(PRODUCT) REFERENCES PRODUCTS(ID));
 
+CREATE TABLE IF NOT EXISTS VAN_LOAD(
+                                    product INT NOT NULL,
+                                    amount  INT NOT NULL,
+                                    rescuer VARCHAR(50) NOT NULL,
+
+                                    PRIMARY KEY (product, rescuer),
+                                    FOREIGN KEY (product) REFERENCES PRODUCTS(ID),
+                                    FOREIGN KEY (rescuer) REFERENCES USERS(USERNAME));
+
 DELIMITER $$
 
 CREATE PROCEDURE ADD_CATEGORY(IN p_CATEGORY VARCHAR(50))
@@ -215,10 +224,33 @@ BEGIN
 	END IF;
 
 END$$
+
+CREATE PROCEDURE UNLOAD_PRODUCTS(
+                                IN p_PRODUCT_ID INT,
+                                IN p_amount     INT,
+                                IN p_rescuer    VARCHAR(50))
+BEGIN
+
+    START TRANSACTION;
+
+    UPDATE WAREHOUSE
+    SET AMOUNT = AMOUNT + p_amount
+    WHERE PRODUCT = p_PRODUCT_ID;
+
+
+    DELETE FROM VAN_LOAD
+    WHERE product = p_PRODUCT_ID 
+        AND rescuer = p_rescuer;
+
+    COMMIT;
+
+END$$
 DELIMITER ;
 
+-- ADD CATEGORIES
 CALL ADD_CATEGORY('Medicines');
 
+-- ADD PRODUCTS
 CALL ADD_NEW_PRODUCT('Medicines', 'Aspirin', 'pills', '40');
 CALL ADD_NEW_PRODUCT('Medicines', 'Aspirin', 'active substance', '500mg');
 
@@ -263,3 +295,9 @@ CALL ADD_NEW_PRODUCT('Medicines', 'Docycycline Capsules', 'administration', 'ora
 CALL ADD_NEW_PRODUCT('Medicines', 'Chlorhexidine Solution', 'active substance', '0.5% solution');
 CALL ADD_NEW_PRODUCT('Medicines', 'Chlorhexidine Solution', 'dosage form', 'solution');
 CALL ADD_NEW_PRODUCT('Medicines', 'Chlorhexidine Solution', 'administration', 'topical');
+
+-- ADD LOAD
+INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (1, 5, '6945384502');
+INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (5, 4, '6945384502');
+INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (6, 9, '6945384502');
+INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (7, 10, '6945384502');

@@ -39,6 +39,7 @@ async function init() {
                 user.position = data.myPos;
                 user.name = data.name;
                 user.username = data.username;
+                user.load = data.load;
 
                 markers.warehouse = L.marker([data.warehouse.lat, data.warehouse.lng], { draggable: false, icon: new warehouseIcon() }).addTo(map);
                 markers.myPos = L.marker([data.myPos.lat, data.myPos.lng], { draggable: true, icon: new rescuerIcon() }).addTo(map);
@@ -95,8 +96,8 @@ async function init() {
                     });
 
                     if (markers.myPos.getLatLng().distanceTo(markers.warehouse.getLatLng()) <= 100) {
+                        user.load.length !== 0 ? unloadButton.classList.remove("disabled") : null;
                         loadButton.classList.remove("disabled");
-                        unloadButton.classList.remove("disabled");
                     }
                     else {
                         loadButton.classList.add("disabled");
@@ -107,13 +108,15 @@ async function init() {
                 updateTasksPanel();
 
                 if (markers.myPos.getLatLng().distanceTo(markers.warehouse.getLatLng()) <= 100) {
+                    user.load.length !== 0 ? unloadButton.classList.remove("disabled") : unloadButton.classList.add("disabled");;
                     loadButton.classList.remove("disabled");
-                    unloadButton.classList.remove("disabled");
                 }
                 else {
                     loadButton.classList.add("disabled");
                     unloadButton.classList.add("disabled");
                 }
+
+                setWarehouseProductsOnModal();
 
             }
         )
@@ -175,9 +178,58 @@ function updateTasksPanel() {
     }
 }
 
+async function setWarehouseProductsOnModal() {
+    const tableBody = document.getElementsByTagName("tbody")[0];
+
+    await fetch(`http://localhost:${PORT}/rescuer/getWarehouseProducts`, {
+        method: "GET",
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(response => response.json())
+        .then(
+            data => {
+
+                for (let prod of data) {
+                    let new_row = tableBody.insertRow();
+
+                    let new_cell = new_row.insertCell();
+                    new_cell.innerText = prod.PRODUCT_NAME;
+
+                    new_cell = new_row.insertCell();
+                    new_cell.innerText = prod.AMOUNT;
+
+                    let amount_field = document.createElement("input");
+                    amount_field.setAttribute("id", `textField_${prod.ID}`);
+                    amount_field.setAttribute("type", "number");
+                    amount_field.setAttribute("min", "0");
+                    amount_field.setAttribute("max", prod.AMOUNT);
+                    amount_field.addEventListener("change", (event) => {
+                        const index = user.loadProducts.findIndex(obj => obj.id === prod.ID);
+                        const newValue = parseInt(event.target.value, 10);
+
+                        console.log(index);
+
+                        if (index !== -1)
+                            newValue !== 0 ? user.loadProducts[index].amount = newValue : user.loadProducts.splice(index, 1);
+                        else
+                            newValue !== 0 ? user.loadProducts.push({ id: prod.ID, amount: newValue }) : null;
+
+                        console.log(user.loadProducts);
+                    })
+
+                    new_cell = new_row.insertCell();
+                    new_cell.appendChild(amount_field);
+                }
+            }
+        )
+}
+
 let user = {
-    warehouse: {},
-    position: {},
+    warehouse: { lat: 0, lng: 0 },
+    position: { lat: 0, lng: 0 },
+    load: [{ id: 0, name: "demo", category: "demo", amount: 0 }],
+    loadProducts: [],
     currentTasks: [{ id: 1, name: "Μπάμπης", username: "6987452015", location: { lat: 38.64776165212098, lng: 23.12625890968818 }, acceptDate: "2024-07-30 15:40:34", date: "2024-07-30 15:35:34", products: { name: "νερό", amount: 5 }, type: "Προσφορά" },
     { id: 2, name: "Μάκης", username: "6945128443", location: { lat: 38.24673484881786, lng: 23.400586171562672 }, acceptDate: "2024-07-30 12:48:44", date: "2024-07-30 12:38:44", products: { name: "Depon", amount: 2 }, type: "Αίτηση" },
     // { id: 3, name: "Μήτσος", username: "6954214530", location: { lat: 38.54776165212098, lng: 23.02625890968818 }, acceptDate: "2024-07-30 11:03:14", date: "2024-07-30 10:53:14", products: { name: "Panmigran ", amount: 8 }, type: "Προσφορά" },
@@ -259,4 +311,24 @@ function cancelTaskButtonClicked(id) {
 
         init();
     }
+}
+
+unloadButton.addEventListener("click", async () => {
+
+    if (user.load.length !== 0) {
+        await fetch(`http://localhost:${PORT}/rescuer/unload`, {
+            body: JSON.stringify(user.load),
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => console.log(response));
+
+        alert("Επιτυχής εκφόρτωση προϊόντων");
+    }
+
+})
+
+async function loadToVan() {
+    console.log("φορτωση");
 }
