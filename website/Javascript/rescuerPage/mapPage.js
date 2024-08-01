@@ -28,6 +28,7 @@ const citizenIcon = L.Icon.extend({
 
 const loadButton = document.getElementById("load");
 const unloadButton = document.getElementById("unload");
+let lines = [];
 
 async function init() {
     const response = await fetch(`http://localhost:${PORT}/rescuer/init`, {
@@ -173,6 +174,21 @@ function updateTasksPanel() {
         card.appendChild(cardBody);
         card.id = `cardTaskFor_${task.id}`;
 
+        card.addEventListener("mouseenter", () => {
+
+            const pathCoords = [[user.position.lat, user.position.lng], [task.location.lat, task.location.lng]];
+
+            lines.push(L.polyline(pathCoords, { color: 'black' }).addTo(map));
+
+        });
+
+        card.addEventListener("mouseleave", () => {
+            lines[0].remove();
+            lines = [];
+        });
+
+
+
         taskPanel.appendChild(card);
 
     }
@@ -180,6 +196,7 @@ function updateTasksPanel() {
 
 async function setWarehouseProductsOnModal() {
     const tableBody = document.getElementsByTagName("tbody")[0];
+    tableBody.innerText = "";
 
     await fetch(`http://localhost:${PORT}/rescuer/getWarehouseProducts`, {
         method: "GET",
@@ -206,17 +223,14 @@ async function setWarehouseProductsOnModal() {
                     amount_field.setAttribute("max", prod.AMOUNT);
                     amount_field.addEventListener("change", (event) => {
                         const index = user.loadProducts.findIndex(obj => obj.id === prod.ID);
-                        const newValue = parseInt(event.target.value, 10);
-
-                        console.log(index);
+                        const newValue = parseInt(event.target.value, 10) > prod.AMOUNT ? prod.AMOUNT : parseInt(event.target.value, 10);
 
                         if (index !== -1)
                             newValue !== 0 ? user.loadProducts[index].amount = newValue : user.loadProducts.splice(index, 1);
                         else
                             newValue !== 0 ? user.loadProducts.push({ id: prod.ID, amount: newValue }) : null;
 
-                        console.log(user.loadProducts);
-                    })
+                    });
 
                     new_cell = new_row.insertCell();
                     new_cell.appendChild(amount_field);
@@ -309,6 +323,9 @@ function cancelTaskButtonClicked(id) {
         markers.currentTasks = [];
         markers.tasks = [];
 
+        lines[0].remove();
+        lines = [];
+
         init();
     }
 }
@@ -330,5 +347,19 @@ unloadButton.addEventListener("click", async () => {
 })
 
 async function loadToVan() {
-    console.log("φορτωση");
+
+    await fetch(`http://localhost:${PORT}/rescuer/loadProductsToVan`, {
+        method: "POST",
+        body: JSON.stringify(user.loadProducts),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(response => response.status == 200 ? user.loadProducts = [] : null);
+
+    init();
+}
+
+function cancelLoading() {
+    init();
+    user.loadProducts = [];
 }

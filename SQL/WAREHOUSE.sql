@@ -245,6 +245,37 @@ BEGIN
     COMMIT;
 
 END$$
+
+CREATE PROCEDURE LOAD_PRODUCTS(
+                                IN p_product_id INT,
+                                IN p_amount     INT,
+                                IN p_rescuer    VARCHAR(50))
+BEGIN
+    DECLARE FOUND_PRODUCT INT DEFAULT NULL;
+
+    START TRANSACTION;
+
+    UPDATE WAREHOUSE
+    SET AMOUNT = AMOUNT - p_amount
+    WHERE PRODUCT = p_product_id;
+
+    SELECT product
+        INTO FOUND_PRODUCT
+    FROM VAN_LOAD
+    WHERE rescuer = p_rescuer
+        AND product = p_product_id;
+
+    IF FOUND_PRODUCT IS NULL THEN
+        INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES(p_product_id, p_amount, p_rescuer);
+    ELSE
+        UPDATE VAN_LOAD
+        SET amount = amount + p_amount
+        WHERE product = p_product_id;
+    END IF;
+
+    COMMIT;
+
+END$$
 DELIMITER ;
 
 -- ADD CATEGORIES

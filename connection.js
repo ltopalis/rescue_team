@@ -175,3 +175,10 @@ export async function getWarehouseProducts() {
 
     return response;
 }
+
+export async function loadProducts(data) {
+    for(let prod of data){
+        await db.query(`CALL LOAD_PRODUCTS(?,?,?)`, [prod.id, prod.amount, prod.rescuer]);
+    }
+    return { status: 200 };
+}

@@ -8,7 +8,7 @@ import {
     getProducts, alterAvailabilityProduct, getProductCategories,
     addCategory, addProduct, updateProductAmount,
     initRescuer, updatePosition, unloadProducts,
-    getWarehouseProducts
+    getWarehouseProducts, loadProducts
 } from './connection.js'
 
 const PORT = 3000;
@@ -290,7 +290,7 @@ app.get("/rescuer/init", async (req, res) => {
 
 app.post('/rescuer/unload', async (req, res) => {
 
-    for(let data of req.body) {
+    for (let data of req.body) {
         data.rescuer = req.session.userData.username;
         await unloadProducts(data);
     }
@@ -302,7 +302,20 @@ app.get("/rescuer/getWarehouseProducts", async (req, res) => {
     const [response] = await getWarehouseProducts();
 
     res.send(response);
-})
+});
+
+app.post("/rescuer/loadProductsToVan", async (req, res) => {
+    if (req.session.userData) {
+        for (let pro of req.body) {
+            pro.rescuer = req.session.userData.username;
+        }
+
+        let response = await loadProducts(req.body);
+
+        res.sendStatus(response.status);
+    }
+    else res.sendStatus(505);
+});
 
 app.listen(PORT, () => {
     console.log(`Server is sunning on Port ${PORT}`);
