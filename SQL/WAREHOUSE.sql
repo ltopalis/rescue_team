@@ -253,48 +253,60 @@ CALL ADD_CATEGORY('Medicines');
 -- ADD PRODUCTS
 CALL ADD_NEW_PRODUCT('Medicines', 'Aspirin', 'pills', '40');
 CALL ADD_NEW_PRODUCT('Medicines', 'Aspirin', 'active substance', '500mg');
+UPDATE WAREHOUSE SET AMOUNT = 9 WHERE PRODUCT = 1;
 
 CALL ADD_NEW_PRODUCT('Medicines', 'Bandage', 'length', '50m');
+UPDATE WAREHOUSE SET AMOUNT = 7 WHERE PRODUCT = 2;
 
 CALL ADD_NEW_PRODUCT('Medicines', 'Amoxicillin Capsules', 'active substance', '500mg');
 CALL ADD_NEW_PRODUCT('Medicines', 'Amoxicillin Capsules', 'dosage form', 'capsule');
 CALL ADD_NEW_PRODUCT('Medicines', 'Amoxicillin Capsules', 'administration', 'oral');
+UPDATE WAREHOUSE SET AMOUNT = 6 WHERE PRODUCT = 3;
 
 CALL ADD_NEW_PRODUCT('Medicines', 'Ibuprofen Tablets', 'active substance', '200mg');
 CALL ADD_NEW_PRODUCT('Medicines', 'Ibuprofen Tablets', 'dosage form', 'tablet');
 CALL ADD_NEW_PRODUCT('Medicines', 'Ibuprofen Tablets', 'administration', 'oral');
+UPDATE WAREHOUSE SET AMOUNT = 28 WHERE PRODUCT = 4;
 
 CALL ADD_NEW_PRODUCT('Medicines', 'Tetanus Toxoid Vaccine', 'active substance', 'single dose');
 CALL ADD_NEW_PRODUCT('Medicines', 'Tetanus Toxoid Vaccine', 'dosage form', 'injection');
 CALL ADD_NEW_PRODUCT('Medicines', 'Tetanus Toxoid Vaccine', 'administration', 'intramuscular');
+UPDATE WAREHOUSE SET AMOUNT = 95 WHERE PRODUCT = 5;
 
 CALL ADD_NEW_PRODUCT('Medicines', 'Oral Rehydration Salts', 'active substance', 'sachet for 1 liter of solution');
 CALL ADD_NEW_PRODUCT('Medicines', 'Oral Rehydration Salts', 'dosage form', 'powder');
 CALL ADD_NEW_PRODUCT('Medicines', 'Oral Rehydration Salts', 'administration', 'oral solution');
+UPDATE WAREHOUSE SET AMOUNT = 54 WHERE PRODUCT = 6;
 
 CALL ADD_NEW_PRODUCT('Medicines', 'Peracetamol Tablets', 'active substance', '500mg');
 CALL ADD_NEW_PRODUCT('Medicines', 'Peracetamol Tablets', 'dosage form', 'tablet');
 CALL ADD_NEW_PRODUCT('Medicines', 'Peracetamol Tablets', 'administration', 'oral');
+UPDATE WAREHOUSE SET AMOUNT = 19 WHERE PRODUCT = 7;
 
 CALL ADD_NEW_PRODUCT('Medicines', 'Hydrocortisone Cream', 'active substance', '1%');
 CALL ADD_NEW_PRODUCT('Medicines', 'Hydrocortisone Cream', 'dosage form', 'cream');
 CALL ADD_NEW_PRODUCT('Medicines', 'Hydrocortisone Cream', 'administration', 'topical');
+UPDATE WAREHOUSE SET AMOUNT = 92 WHERE PRODUCT = 8;
 
 CALL ADD_NEW_PRODUCT('Medicines', 'Loperamide Capsules', 'active substance', '2mg');
 CALL ADD_NEW_PRODUCT('Medicines', 'Loperamide Capsules', 'dosage form', 'capsule');
 CALL ADD_NEW_PRODUCT('Medicines', 'Loperamide Capsules', 'administration', 'oral');
+UPDATE WAREHOUSE SET AMOUNT = 59 WHERE PRODUCT = 9;
 
 CALL ADD_NEW_PRODUCT('Medicines', 'Ciprofloxacin Tablets', 'active substance', '500mg');
 CALL ADD_NEW_PRODUCT('Medicines', 'Ciprofloxacin Tablets', 'dosage form', 'tablet');
 CALL ADD_NEW_PRODUCT('Medicines', 'Ciprofloxacin Tablets', 'administration', 'oral');
+UPDATE WAREHOUSE SET AMOUNT = 29 WHERE PRODUCT = 10;
 
 CALL ADD_NEW_PRODUCT('Medicines', 'Docycycline Capsules', 'active substance', '100mg');
 CALL ADD_NEW_PRODUCT('Medicines', 'Docycycline Capsules', 'dosage form', 'capsule');
 CALL ADD_NEW_PRODUCT('Medicines', 'Docycycline Capsules', 'administration', 'oral');
+UPDATE WAREHOUSE SET AMOUNT = 45 WHERE PRODUCT = 11;
 
 CALL ADD_NEW_PRODUCT('Medicines', 'Chlorhexidine Solution', 'active substance', '0.5% solution');
 CALL ADD_NEW_PRODUCT('Medicines', 'Chlorhexidine Solution', 'dosage form', 'solution');
 CALL ADD_NEW_PRODUCT('Medicines', 'Chlorhexidine Solution', 'administration', 'topical');
+UPDATE WAREHOUSE SET AMOUNT = 57 WHERE PRODUCT = 12;
 
 -- ADD LOAD
 INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (1, 5, '6945384502');
