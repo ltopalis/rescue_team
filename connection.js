@@ -177,8 +177,14 @@ export async function getWarehouseProducts() {
 }
 
 export async function loadProducts(data) {
-    for(let prod of data){
+    for (let prod of data) {
         await db.query(`CALL LOAD_PRODUCTS(?,?,?)`, [prod.id, prod.amount, prod.rescuer]);
     }
     return { status: 200 };
+}
+
+export async function setActive(data) {
+    const [response] = await db.query(`UPDATE USERS SET ACTIVE = ? WHERE USERS.USERNAME = ?`, [data.active, data.user]);
+
+    return response;
 }

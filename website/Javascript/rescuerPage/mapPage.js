@@ -28,6 +28,8 @@ const citizenIcon = L.Icon.extend({
 
 const loadButton = document.getElementById("load");
 const unloadButton = document.getElementById("unload");
+const activeSwitch = document.getElementById("active-checkbox");
+activeSwitch.checked = false;
 let lines = [];
 
 async function init() {
@@ -42,11 +44,16 @@ async function init() {
                 user.username = data.username;
                 user.load = data.load;
 
+
+
                 markers.warehouse = L.marker([data.warehouse.lat, data.warehouse.lng], { draggable: false, icon: new warehouseIcon() }).addTo(map);
                 markers.myPos = L.marker([data.myPos.lat, data.myPos.lng], { draggable: true, icon: new rescuerIcon() }).addTo(map);
 
                 markers.warehouse.bindPopup("Βάση");
-                markers.myPos.bindPopup(user.name);
+                let popupMsg = user.name + "</br>";
+                for (let l of user.load)
+                    popupMsg += `x${l.amount} ${l.name}</br>`
+                markers.myPos.bindPopup(popupMsg);
 
                 for (let task of user.currentTasks) {
                     let newMarker = L.marker([task.location.lat, task.location.lng], {
@@ -94,6 +101,11 @@ async function init() {
                         headers: {
                             'Content-Type': 'application/json'
                         }
+                    }).then(response => {
+                        if (response.status == 200) {
+                            user.position.lat = e.target.getLatLng().lat;
+                            user.position.lng = e.target.getLatLng().lng;
+                        }
                     });
 
                     if (markers.myPos.getLatLng().distanceTo(markers.warehouse.getLatLng()) <= 100) {
@@ -104,6 +116,21 @@ async function init() {
                         loadButton.classList.add("disabled");
                         unloadButton.classList.add("disabled");
                     }
+
+                    for (let task of user.currentTasks) {
+
+                        const index = markers.currentTasks.findIndex(marker => marker.getLatLng().lat == task.location.lat && marker.getLatLng().lng == task.location.lng);
+                        const dist = markers.myPos.getLatLng().distanceTo(markers.currentTasks[index].getLatLng());
+
+                        const btn = document.getElementById(`completeButtonTaskFor_${task.id}`);
+
+                        if (dist > 50)
+                            btn.classList.add("disabled");
+                        else
+                            btn.classList.remove("disabled");
+
+                    }
+
                 });
 
                 updateTasksPanel();
@@ -148,8 +175,20 @@ function updateTasksPanel() {
         completeButton.classList.add("btn");
         completeButton.classList.add("btn-success");
         completeButton.classList.add("d-md-inline");
+
+        const index = markers.currentTasks.findIndex(marker => marker.getLatLng().lat == task.location.lat && marker.getLatLng().lng == task.location.lng);
+        const dist = markers.myPos.getLatLng().distanceTo(markers.currentTasks[index].getLatLng());
+        if (dist > 50)
+            completeButton.classList.add("disabled");
         completeButton.id = `completeButtonTaskFor_${task.id}`;
         completeButton.innerText = "Ολοκλήρωση";
+        completeButton.addEventListener("click", async () => {
+            const taskId = completeButton.id.split('_')[1];
+
+            const task = user.currentTasks[user.currentTasks.findIndex(task => task.id == taskId)];
+
+            console.log(task);
+        });
 
 
         let rejectButton = document.createElement("a");
@@ -186,8 +225,6 @@ function updateTasksPanel() {
             lines[0].remove();
             lines = [];
         });
-
-
 
         taskPanel.appendChild(card);
 
@@ -244,18 +281,18 @@ let user = {
     position: { lat: 0, lng: 0 },
     load: [{ id: 0, name: "demo", category: "demo", amount: 0 }],
     loadProducts: [],
-    currentTasks: [{ id: 1, name: "Μπάμπης", username: "6987452015", location: { lat: 38.64776165212098, lng: 23.12625890968818 }, acceptDate: "2024-07-30 15:40:34", date: "2024-07-30 15:35:34", products: { name: "νερό", amount: 5 }, type: "Προσφορά" },
-    { id: 2, name: "Μάκης", username: "6945128443", location: { lat: 38.24673484881786, lng: 23.400586171562672 }, acceptDate: "2024-07-30 12:48:44", date: "2024-07-30 12:38:44", products: { name: "Depon", amount: 2 }, type: "Αίτηση" },
-    // { id: 3, name: "Μήτσος", username: "6954214530", location: { lat: 38.54776165212098, lng: 23.02625890968818 }, acceptDate: "2024-07-30 11:03:14", date: "2024-07-30 10:53:14", products: { name: "Panmigran ", amount: 8 }, type: "Προσφορά" },
-    { id: 4, name: "Κατερίνα", username: "6957432019", location: { lat: 38.4169823256788, lng: 23.081978669454646 }, acceptDate: "2024-07-28 07:33:02", date: "2024-07-28 07:23:02", products: { name: "Ζάχαρη", amount: 25 }, type: "Αίτηση" }
+    currentTasks: [{ id: 1, name: "Μπάμπης", username: "6987452015", location: { lat: 38.64776165212098, lng: 23.12625890968818 }, acceptDate: "2024-07-30 15:40:34", date: "2024-07-30 15:35:34", products: { id: 5, name: "νερό", amount: 5 }, type: "Προσφορά" },
+    { id: 2, name: "Μάκης", username: "6945128443", location: { lat: 38.24673484881786, lng: 23.400586171562672 }, acceptDate: "2024-07-30 12:48:44", date: "2024-07-30 12:38:44", products: { id: 3, name: "Depon", amount: 2 }, type: "Αίτηση" },
+    // { id: 3, name: "Μήτσος", username: "6954214530", location: { lat: 38.54776165212098, lng: 23.02625890968818 }, acceptDate: "2024-07-30 11:03:14", date: "2024-07-30 10:53:14", products: { id: 2, name: "Panmigran ", amount: 8 }, type: "Προσφορά" },
+    { id: 4, name: "Κατερίνα", username: "6957432019", location: { lat: 38.4169823256788, lng: 23.081978669454646 }, acceptDate: "2024-07-28 07:33:02", date: "2024-07-28 07:23:02", products: { id: 6, name: "Ζάχαρη", amount: 25 }, type: "Αίτηση" }
     ]
 };
 
 let tasks = [
-    { id: 5, name: "Σπύρος", username: "6985213647", location: { lat: 37.77718717873785, lng: 23.931768977728874 }, date: "2024-07-30 15:35:34", products: { name: "ψωμί", amount: 3 }, type: "Προσφορά" },
-    { id: 6, name: "Σωτήρης", username: "6921478305", location: { lat: 38.77718715873785, lng: 23.951568977728874 }, date: "2024-07-30 15:35:34", products: { name: "γάζες", amount: 6 }, type: "Αίτηση" },
-    { id: 7, name: "Πάρης", username: "6985223471", location: { lat: 36.77708713873785, lng: 23.891548977728874 }, date: "2024-07-30 15:35:34", products: { name: "σιρόπι για τον βήχα", amount: 2 }, type: "Προσφορά" },
-    { id: 8, name: "Άκης", username: "6901230587", location: { lat: 37.77774515873785, lng: 23.501486977728874 }, date: "2024-07-30 15:35:34", products: { name: "πάνες", amount: 1 }, type: "Προσφορά" },
+    { id: 5, name: "Σπύρος", username: "6985213647", location: { lat: 37.77718717873785, lng: 23.931768977728874 }, date: "2024-07-30 15:35:34", products: { id: 9, name: "ψωμί", amount: 3 }, type: "Προσφορά" },
+    { id: 6, name: "Σωτήρης", username: "6921478305", location: { lat: 38.77718715873785, lng: 23.951568977728874 }, date: "2024-07-30 15:35:34", products: { id: 10, name: "γάζες", amount: 6 }, type: "Αίτηση" },
+    { id: 7, name: "Πάρης", username: "6985223471", location: { lat: 36.77708713873785, lng: 23.891548977728874 }, date: "2024-07-30 15:35:34", products: { id: 8, name: "σιρόπι για τον βήχα", amount: 2 }, type: "Προσφορά" },
+    { id: 8, name: "Άκης", username: "6901230587", location: { lat: 37.77774515873785, lng: 23.501486977728874 }, date: "2024-07-30 15:35:34", products: { id: 4, name: "πάνες", amount: 1 }, type: "Προσφορά" },
 ]
 
 let markers = {
@@ -326,6 +363,15 @@ function cancelTaskButtonClicked(id) {
         lines[0].remove();
         lines = [];
 
+        for (let m of markers.currentTasks)
+            map.removeLayer(m);
+
+        for (let m of markers.tasks)
+            map.removeLayer(m);
+
+        map.removeLayer(markers.myPos);
+        map.removeLayer(markers.warehouse);
+
         init();
     }
 }
@@ -339,7 +385,18 @@ unloadButton.addEventListener("click", async () => {
             headers: {
                 'Content-Type': 'application/json'
             }
-        }).then(response => console.log(response));
+        });
+
+        for (let m of markers.currentTasks)
+            map.removeLayer(m);
+
+        for (let m of markers.tasks)
+            map.removeLayer(m);
+
+        map.removeLayer(markers.myPos);
+        map.removeLayer(markers.warehouse);
+
+        init();
 
         alert("Επιτυχής εκφόρτωση προϊόντων");
     }
@@ -356,10 +413,39 @@ async function loadToVan() {
         }
     }).then(response => response.status == 200 ? user.loadProducts = [] : null);
 
+    for (let m of markers.currentTasks)
+        map.removeLayer(m);
+
+    for (let m of markers.tasks)
+        map.removeLayer(m);
+
+    map.removeLayer(markers.myPos);
+    map.removeLayer(markers.warehouse);
+
     init();
 }
 
 function cancelLoading() {
+
+    for (let m of markers.currentTasks)
+        map.removeLayer(m);
+
+    for (let m of markers.tasks)
+        map.removeLayer(m);
+
+    map.removeLayer(markers.myPos);
+    map.removeLayer(markers.warehouse);
+
     init();
     user.loadProducts = [];
 }
+
+activeSwitch.addEventListener("click", async () => {
+    fetch(`http://localhost:${PORT}/rescuer/setActivity`, {
+        method: 'POST',
+        body: JSON.stringify({ active: activeSwitch.checked }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+});
