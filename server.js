@@ -8,7 +8,8 @@ import {
     getProducts, alterAvailabilityProduct, getProductCategories,
     addCategory, addProduct, updateProductAmount,
     initRescuer, updatePosition, unloadProducts,
-    getWarehouseProducts, loadProducts, setActive
+    getWarehouseProducts, loadProducts, setActive,
+    getProductsOnVan
 } from './connection.js'
 
 const PORT = 3000;
@@ -115,12 +116,12 @@ app.get("/calculateCitizenPosition", async (req, res) => {
 
     const loc = await getWarehouseLocation();
 
-    const radius = 50; // in kilometers
+    const radius = 5; // in kilometers
 
     let latitude = loc.LATITUDE + (Math.random() - 0.5) * 2 * (radius / 111.32);
     let longtitude = loc.LONGTITUDE + (Math.random() - 0.5) * 2 * (radius / (111.32 * Math.cos((Math.PI / 180) * loc.LATITUDE)));
 
-    res.send(JSON.stringify({ latitude, longtitude }));
+    res.send({ latitude, longtitude });
 
 });
 
@@ -267,6 +268,14 @@ app.post("/admin/getDataFromURL", async (req, gres) => {
     } catch (error) {
         gres.send({ error });
     }
+});
+
+app.get("/admin/getProductsOnVans", async (req, res) => {
+
+    const response = await getProductsOnVan();
+
+    res.send(response);
+
 });
 
 

@@ -344,3 +344,14 @@ INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (1, 5, '6945384502');
 INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (5, 4, '6945384502');
 INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (6, 9, '6945384502');
 INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (7, 10, '6945384502');
+
+INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (2, 1, '6925874523');
+INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (4, 3, '6925874523');
+INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (6, 5, '6925874523');
+INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (8, 7, '6925874523');
+INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (10, 9, '6925874523');
+
+INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (5, 4, '6952486520');
+INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (7, 6, '6952486520');
+INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (9, 8, '6952486520');
+INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (11, 10, '6952486520');

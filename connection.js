@@ -43,7 +43,7 @@ export async function signup(username, password, name, role, lat, lng) {
     try {
         const query = `CALL ADD_USER(?,?,?,?,?,?,?)`;
 
-        await db.execute(query, [username, password, name, role, (role === "RESCUER" ? 0 : null), lat, lng]);
+        await db.execute(query, [username, password, name, role, (role === "RESCUER" ? 0 : null), lng, lat]);
 
         return { status: "SUCCESS" }
 
@@ -187,4 +187,38 @@ export async function setActive(data) {
     const [response] = await db.query(`UPDATE USERS SET ACTIVE = ? WHERE USERS.USERNAME = ?`, [data.active, data.user]);
 
     return response;
+}
+
+export async function getProductsOnVan() {
+    const [response] = await db.query(`
+        SELECT USERNAME, NAME, PRODUCT_NAME, CATEGORY, amount 
+        FROM VAN_LOAD JOIN USERS ON VAN_LOAD.rescuer = USERS.USERNAME 
+            JOIN PRODUCTS ON PRODUCTS.ID = VAN_LOAD.product`);
+
+    let data = [];
+    for (let prod of response) {
+        const index = data.findIndex(datum => datum.username == prod.USERNAME);
+
+        if (index === -1)
+            data.push({
+                username: prod.USERNAME,
+                name: prod.NAME,
+                products: [
+                    {
+                        name: prod.PRODUCT_NAME,
+                        category: prod.CATEGORY,
+                        amount: prod.amount
+                    }
+                ]
+            })
+        else
+            data[index].products.push({
+                name: prod.PRODUCT_NAME,
+                category: prod.CATEGORY,
+                amount: prod.amount
+            })
+
+    }
+
+    return data;
 }

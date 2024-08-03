@@ -15,6 +15,7 @@
 
     <script defer src="../../JavaScript/general.js"></script>
     <script defer src="../../Javascript/adminPage/show_products_in_warehouse.js"></script>
+    <script defer src="../../Javascript/adminPage/show_products_in_transition.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
         crossorigin="anonymous"></script>
@@ -61,56 +62,130 @@
         </div>
     </nav>
 
-    <!-- products table -->
+    <div class="container my-5">
+        <nav>
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                <button type="button" class="nav-link active" id="nav-show-product-in-warehouse-tab"
+                    data-bs-toggle="tab" data-bs-target="#warehouse-div" role="tab" aria-controls="nav-manual"
+                    aria-selected="true">Αποθήκη</button>
 
+                <button type="button" class="nav-link" id="nav-show-product-in-transition-tab" data-bs-toggle="tab"
+                    data-bs-target="#transition-div" role="tab" aria-controls="nav-file" aria-selected="true">Σε
+                    μεταφορά</button>
+            </div>
+        </nav>
 
-    <div class="container">
-        <div class="row justify-content-center">
-            <table class="table" id="table-of-products">
-                <thead>
-                    <tr>
-                        <th scope="col"></th>
-                        <th scope="col">Προϊόν</th>
-                        <th scope="col">Κατηγορία</th>
-                        <th scope="col">Λεπτομέριες</th>
-                        <th scope="col">Τιμή Λεπτομέριας</th>
-                        <th scope="col">Ποσότητα</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Water</td>
-                        <td>Beverages</td>
-                        <td>pack size</td>
-                        <td>6</td>
-                        <td><input type="text" name="" id="" value="0"></td>
-                    </tr>
+        <!-- products table -->
+        <div class="tab-content" id="nav-tabContent">
+            <!-- warehouse -->
 
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <div class="container">
-        <div class="row justify-content-end">
-            <div class="col-lg-2 col-sm-6">
-                <div class="form-check form-switch">
-                    <label for="editable-checkbox" class="form-check-label">Editable</label>
-                    <input class="form-check-input" type="checkbox" role="switch" id="editable-checkbox"
-                        onclick="toogle_ediatble_field()">
+            <div class="tab-pane fade show active p-3" id="warehouse-div"
+                aria-labelledby="nav-show-product-in-warehouse-tab">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div>
+                            <label for="category-select">Κατηγορίες</label>
+                            <div name="categories" id="category-select">
+
+                            </div>
+                        </div>
+
+                        <table class="table" id="table-of-products">
+                            <thead>
+                                <tr>
+                                    <th scope="col"></th>
+                                    <th scope="col">Προϊόν</th>
+                                    <th scope="col">Κατηγορία</th>
+                                    <th scope="col">Λεπτομέριες</th>
+                                    <th scope="col">Τιμή Λεπτομέριας</th>
+                                    <th scope="col">Ποσότητα</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Water</td>
+                                    <td>Beverages</td>
+                                    <td>pack size</td>
+                                    <td>6</td>
+                                    <td><input type="text" name="" id="" value="0"></td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="form-check form-switch">
-                    <label for="deleted-checkbox" class="form-check-label">Διαγεγραμμένα</label>
-                    <input class="form-check-input" type="checkbox" role="switch" id="deleted-checkbox"
-                        onclick="toogle_deleted_field()">
+
+                <div class="container">
+                    <div class="row justify-content-end">
+                        <div class="col-lg-2 col-sm-6">
+                            <div class="form-check form-switch">
+                                <label for="editable-checkbox" class="form-check-label">Editable</label>
+                                <input class="form-check-input" type="checkbox" role="switch" id="editable-checkbox"
+                                    onclick="toogle_ediatble_field()">
+                            </div>
+                            <div class="form-check form-switch">
+                                <label for="deleted-checkbox" class="form-check-label">Διαγεγραμμένα</label>
+                                <input class="form-check-input" type="checkbox" role="switch" id="deleted-checkbox"
+                                    onclick="toogle_deleted_field()">
+                            </div>
+                            <div>
+                                <button type="button" id="save-new-values"
+                                    class="btn btn-outline-success btn-sm">ΑΠΟΘΗΚΕΥΣΗ</button>
+                                <button type="button" id="cancel-new-values"
+                                    class="btn btn-outline-danger btn-sm">ΑΚΥΡΩΣΗ</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-				<div>
-					<button type="button" id="save-new-values" class="btn btn-outline-success btn-sm">ΑΠΟΘΗΚΕΥΣΗ</button>
-					<button type="button" id="cancel-new-values" class="btn btn-outline-danger btn-sm">ΑΚΥΡΩΣΗ</button>
-				</div>
+            </div>
+
+            <!-- In transition -->
+            <div class="tab-pane fade p-3" id="transition-div" aria-labelledby="nav-show-product-in-transition-tab">
+                <div class="row justify-content-center">
+                    <table class="table" id="table-of-products-in-transition">
+                        <thead>
+                            <tr>
+                                <th scope="col">Διασώστης</th>
+                                <th scope="col">Ποσότητα</th>
+                                <th scope="col">Προϊόντα</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Water</td>
+                                <td>5</td>
+                                <td>Beverages</td>
+
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
+
+        <!-- <div class="container">
+            <div class="row justify-content-end">
+                <div class="col-lg-2 col-sm-6">
+                    <div class="form-check form-switch">
+                        <label for="editable-checkbox" class="form-check-label">Editable</label>
+                        <input class="form-check-input" type="checkbox" role="switch" id="editable-checkbox"
+                            onclick="toogle_ediatble_field()">
+                    </div>
+                    <div class="form-check form-switch">
+                        <label for="deleted-checkbox" class="form-check-label">Διαγεγραμμένα</label>
+                        <input class="form-check-input" type="checkbox" role="switch" id="deleted-checkbox"
+                            onclick="toogle_deleted_field()">
+                    </div>
+                    <div>
+                        <button type="button" id="save-new-values"
+                            class="btn btn-outline-success btn-sm">ΑΠΟΘΗΚΕΥΣΗ</button>
+                        <button type="button" id="cancel-new-values"
+                            class="btn btn-outline-danger btn-sm">ΑΚΥΡΩΣΗ</button>
+                    </div>
+                </div>
+            </div>
+        </div> -->
 
 </body>
 

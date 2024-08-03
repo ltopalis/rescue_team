@@ -4,6 +4,7 @@ pageAccess("ADMIN");
 
 let all_products = [];
 const table_data = document.getElementById("table-of-products").getElementsByTagName("tbody")[0];
+const categoriesCheckboxes = document.getElementById("category-select");
 const checkbox = document.getElementById("editable-checkbox");
 
 checkbox.checked = false;
@@ -13,6 +14,7 @@ const response = fetch(`http://localhost:${PORT}/admin/getProducts`, {
 }).then(response => response.json())
     .then(
         data => {
+            let categories = [];
             for (let product of data) {
                 product["edited"] = false;
                 if (all_products[product.ID] === undefined) {
@@ -20,6 +22,7 @@ const response = fetch(`http://localhost:${PORT}/admin/getProducts`, {
                     prod['id'] = product.ID;
                     prod['product_name'] = product.PRODUCT_NAME;
                     prod['category'] = product.CATEGORY;
+                    categories.push(product.CATEGORY);
                     prod['details'] = [];
                     prod['quantity'] = { old: product.AMOUNT, new: undefined };
                     prod['edited'] = product.edited
@@ -33,6 +36,31 @@ const response = fetch(`http://localhost:${PORT}/admin/getProducts`, {
             }
 
             if (all_products.length > 1) all_products.sort((a, b) => a['product_name'].localeCompare(b['product_name']));
+
+            categoriesCheckboxes.innerText = '';
+
+            for (let cat of new Set(categories)) {
+                const input = document.createElement('input');
+                input.value = cat;
+                input.type = "checkbox";
+                input.id = `checkBox_${cat.split(' ')[0]}`
+                input.onclick = add_products_to_table;
+                input.setAttribute("checked", "");
+                input.classList.add("form-check-input");
+
+                const label = document.createElement('label');
+                label.for = `checkBox_${cat.split(' ')[0]}`;
+                label.innerText = cat;
+                label.classList.add("form-check-label");
+
+                const catDiv = document.createElement('div');
+                catDiv.classList.add("form-check");
+                catDiv.classList.add("form-check-inline");
+                catDiv.appendChild(input); catDiv.appendChild(label);
+
+                categoriesCheckboxes.appendChild(catDiv);
+            }
+
             add_products_to_table();
         }
     );
@@ -42,10 +70,17 @@ function add_products_to_table() {
 
     const deletedSwitch = document.getElementById("deleted-checkbox").checked;
 
+    const selectedCategories = [];
+
+    for (let checkbox of categoriesCheckboxes.children)
+        if (checkbox.getElementsByTagName('input')[0].checked) selectedCategories.push(checkbox.getElementsByTagName('input')[0].value);
+
     let i = 0;
 
     while (all_products[i] !== undefined) {
         if (all_products[i]['discontinued'] == !deletedSwitch) { i++; continue; }
+        if (selectedCategories.indexOf(all_products[i]['category']) === -1) { i++; continue; }
+
         let num_of_details = all_products[i]['details'].length;
 
         let new_row = table_data.insertRow();
@@ -200,3 +235,4 @@ cancel_btn.addEventListener("click", e => {
     checkbox.checked = false;
     add_products_to_table();
 });
+
