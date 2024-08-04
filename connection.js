@@ -161,6 +161,60 @@ export async function initRescuer(username) {
     for (let pro of response)
         data.load.push({ id: pro.product, name: pro.PRODUCT_NAME, category: pro.CATEGORY, amount: pro.amount });
 
+    [response] = await db.query(`
+        SELECT  uor1.id          AS taskId, 
+                u1.USERNAME      AS citizenUsername, 
+                u1.NAME          AS citizenName, 
+                uor1.type        AS type, 
+                uor1.status      AS status, 
+                uor1.createdOn   AS creationDate, 
+                por1.product     AS productId, 
+                pr1.PRODUCT_NAME AS productName, 
+                por1.amount      AS productAmount, 
+                u2.USERNAME      AS rescuerUsername, 
+                u2.Name          AS rescuerName, 
+                uor1.assumedOn   AS assumedDate,
+                loc.LATITUDE     AS lat,
+                loc.LONGTITUDE   AS lng 
+        FROM ProductsOffersRequests AS por1 
+            JOIN UserOffersRequests AS uor1 ON por1.offerId = uor1.id 
+            JOIN USERS AS u1 ON u1.USERNAME = uor1.user 
+            JOIN PRODUCTS as pr1 ON pr1.ID = por1.product 
+            JOIN LOCATIONS as loc ON loc.USER = uor1.user
+            LEFT JOIN USERS as u2 ON u2.USERNAME = uor1.assumedBy 
+        WHERE status != 'completed' 
+            AND (uor1.assumedBy = ? OR uor1.assumedBy IS NULL)`, [username]);
+
+    data.currentTasks = [];
+    data.tasks = [];
+    for (let task of response) {
+
+        if (task.rescuerUsername) {
+            const index = data.currentTasks.findIndex(t => t["id"] == task.taskId);
+
+            if (index === -1) {
+                const createdon = new Date(task.creationDate);
+                const acceptedOn = new Date(task.assumedDate);
+                data.currentTasks.push({ id: task.taskId, username: task.citizenUsername, location: { lat: task.lat, lng: task.lng }, acceptDate: `${acceptedOn.getUTCFullYear()}-${(acceptedOn.getUTCMonth() + 1).toString().padStart(2, '0')}-${acceptedOn.getUTCDate().toString().padStart(2, '0')}`, name: task.citizenName, date: `${createdon.getUTCFullYear()}-${(createdon.getUTCMonth() + 1).toString().padStart(2, '0')}-${createdon.getUTCDate().toString().padStart(2, '0')}`, type: (task.type == "offer" ? "Προσφορά" : "Αίτηση"), products: [{ id: task.productId, name: task.productName, amount: task.productAmount }] })
+            }
+            else {
+                data.currentTasks[index].products.push({ id: task.productId, name: task.productName, amount: task.productAmount });
+            }
+
+        }
+        else {
+            const index = data.tasks.findIndex(t => t["id"] == task.taskId);
+
+            if (index === -1) {
+                const createdon = new Date(task.creationDate);
+                data.tasks.push({ id: task.taskId, username: task.citizenUsername, location: { lat: task.lat, lng: task.lng }, name: task.citizenName, date: `${createdon.getUTCFullYear()}-${(createdon.getUTCMonth() + 1).toString().padStart(2, '0')}-${createdon.getUTCDate().toString().padStart(2, '0')}`, type: (task.type == "offer" ? "Προσφορά" : "Αίτηση"), products: [{ id: task.productId, name: task.productName, amount: task.productAmount }] })
+            }
+            else {
+                data.tasks[index].products.push({ id: task.productId, name: task.productName, amount: task.productAmount });
+            }
+        }
+    }
+
     return data;
 }
 
@@ -221,4 +275,28 @@ export async function getProductsOnVan() {
     }
 
     return data;
+}
+
+export async function getTask(body) {
+    const [response] = await db.query(`
+                                UPDATE UserOffersRequests
+                                SET assumedBy = ?, status = 'inTransition', assumedOn = CURRENT_TIMESTAMP()
+                                WHERE id = ?`, [body.username, body.taskId]);
+
+    return response;
+}
+
+export async function cancelTask(body) {
+    const [response] = await db.query(`
+        UPDATE UserOffersRequests
+        SET assumedBy = NULL, status = 'created', assumedOn = NULL
+        WHERE id = ?`, [body.taskId]);
+
+    return response;
+}
+
+export async function completeTask(params) {
+    const [response] = await db.query(`CALL completeTask(?, ?)`, [params.username, params.taskId]);
+
+    return response;
 }

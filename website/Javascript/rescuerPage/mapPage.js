@@ -43,8 +43,9 @@ async function init() {
                 user.name = data.name;
                 user.username = data.username;
                 user.load = data.load;
+                user.currentTasks = data.currentTasks;
 
-
+                tasks = data.tasks;
 
                 markers.warehouse = L.marker([data.warehouse.lat, data.warehouse.lng], { draggable: false, icon: new warehouseIcon() }).addTo(map);
                 markers.myPos = L.marker([data.myPos.lat, data.myPos.lng], { draggable: true, icon: new rescuerIcon() }).addTo(map);
@@ -64,9 +65,12 @@ async function init() {
 
                     let popupMsg = `
                     Όνομα:      ${task.name}<br>
-                    Τηλέφωνο:   ${task.username}<br> 
-                    Προϊόν:     x${task.products.amount} ${task.products.name}<br>
-                    Αναλήφθηκε: ${task.acceptDate}`;
+                    Τηλέφωνο:   ${task.username}<br>
+
+                    Προϊόν:     `;
+                    for (let pr of task.products)
+                        popupMsg += `x${pr.amount} ${pr.name}, `;
+                    popupMsg += `</br>Αναλήφθηκε: ${task.acceptDate}`;
 
                     newMarker.bindPopup(popupMsg);
 
@@ -83,8 +87,10 @@ async function init() {
                     let popupMsg = `
                     Όνομα:      ${task.name}<br>
                     Τηλέφωνο:   ${task.username}<br> 
-                    Προϊόν:     x${task.products.amount} ${task.products.name}<br>
-                    <a class='btn btn-warning' id='getTaskButtonFor_${task.id}' onclick='getTaskButtonClicked(${task.id})'>Ανάληψη</a>`;
+                    Προϊόν:     `;
+                    for (let pr of task.products)
+                        popupMsg += `x${pr.amount} ${pr.name}, `;
+                    popupMsg += `</br><a class='btn btn-warning' id='getTaskButtonFor_${task.id}' onclick='getTaskButtonClicked(${task.id})'>Ανάληψη</a>`;
 
                     newMarker.bindPopup(popupMsg);
 
@@ -169,7 +175,18 @@ function updateTasksPanel() {
 
         let taskText = document.createElement("p");
         taskText.classList.add("card-text");
-        taskText.innerText = `${task.date}\n${task.username}\n\nx${task.products.amount} ${task.products.name}`
+        taskText.innerText = `${task.date}\n${task.username}\n\nx${task.products[0].amount} ${task.products[0].name}`;
+
+        const productsList = document.createElement("ul");
+        productsList.classList.add("list-group");
+        productsList.classList.add("list-group-flush");
+        for (let p in task.products) {
+            const productItem = document.createElement("li");
+            productItem.classList.add("list-group-item");
+            productItem.innerText = `x${p.amount} ${p.name}`;
+
+            productsList.appendChild(productItem);
+        }
 
         let completeButton = document.createElement("a");
         completeButton.classList.add("btn");
@@ -182,13 +199,7 @@ function updateTasksPanel() {
             completeButton.classList.add("disabled");
         completeButton.id = `completeButtonTaskFor_${task.id}`;
         completeButton.innerText = "Ολοκλήρωση";
-        completeButton.addEventListener("click", async () => {
-            const taskId = completeButton.id.split('_')[1];
-
-            const task = user.currentTasks[user.currentTasks.findIndex(task => task.id == taskId)];
-
-            console.log(task);
-        });
+        completeButton.setAttribute("onclick", `completeButtonClicked(${task.id})`);
 
 
         let rejectButton = document.createElement("a");
@@ -281,10 +292,10 @@ let user = {
     position: { lat: 0, lng: 0 },
     load: [{ id: 0, name: "demo", category: "demo", amount: 0 }],
     loadProducts: [],
-    currentTasks: [{ id: 1, name: "Μπάμπης", username: "6987452015", location: { lat: 38.64776165212098, lng: 23.12625890968818 }, acceptDate: "2024-07-30 15:40:34", date: "2024-07-30 15:35:34", products: { id: 5, name: "νερό", amount: 5 }, type: "Προσφορά" },
-    { id: 2, name: "Μάκης", username: "6945128443", location: { lat: 38.24673484881786, lng: 23.400586171562672 }, acceptDate: "2024-07-30 12:48:44", date: "2024-07-30 12:38:44", products: { id: 3, name: "Depon", amount: 2 }, type: "Αίτηση" },
-    // { id: 3, name: "Μήτσος", username: "6954214530", location: { lat: 38.54776165212098, lng: 23.02625890968818 }, acceptDate: "2024-07-30 11:03:14", date: "2024-07-30 10:53:14", products: { id: 2, name: "Panmigran ", amount: 8 }, type: "Προσφορά" },
-    { id: 4, name: "Κατερίνα", username: "6957432019", location: { lat: 38.4169823256788, lng: 23.081978669454646 }, acceptDate: "2024-07-28 07:33:02", date: "2024-07-28 07:23:02", products: { id: 6, name: "Ζάχαρη", amount: 25 }, type: "Αίτηση" }
+    currentTasks: [{ id: 1, name: "Μπάμπης", username: "6987452015", location: { lat: 38.64776165212098, lng: 23.12625890968818 }, acceptDate: "2024-07-30 15:40:34", date: "2024-07-30 15:35:34", products: [{ id: 5, name: "νερό", amount: 5 }], type: "Προσφορά" },
+    { id: 2, name: "Μάκης", username: "6945128443", location: { lat: 38.24673484881786, lng: 23.400586171562672 }, acceptDate: "2024-07-30 12:48:44", date: "2024-07-30 12:38:44", products: [{ id: 3, name: "Depon", amount: 2 }], type: "Αίτηση" },
+    // { id: 3, name: "Μήτσος", username: "6954214530", location: { lat: 38.54776165212098, lng: 23.02625890968818 }, acceptDate: "2024-07-30 11:03:14", date: "2024-07-30 10:53:14", products: [{ id: 2, name: "Panmigran ", amount: 8 }], type: "Προσφορά" },
+    { id: 4, name: "Κατερίνα", username: "6957432019", location: { lat: 38.4169823256788, lng: 23.081978669454646 }, acceptDate: "2024-07-28 07:33:02", date: "2024-07-28 07:23:02", products: [{ id: 6, name: "Ζάχαρη", amount: 25 }], type: "Αίτηση" }
     ]
 };
 
@@ -308,16 +319,46 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
 init();
 
-function getTaskButtonClicked(id) {
+async function getTaskButtonClicked(id) {
+
     if (user.currentTasks.length < 4) {
 
-        const index = tasks.findIndex(element => element.id === id);
+        fetch(`http://localhost:${PORT}/rescuer/getTask`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ taskId: id })
+        }).then((response) => {
+            if (response.status == 200) {
+                for (let m of markers.currentTasks)
+                    map.removeLayer(m);
 
-        if (index !== -1) {
-            const [elem] = tasks.splice(index, 1);
+                for (let m of markers.tasks)
+                    map.removeLayer(m);
 
-            user.currentTasks.push(elem);
+                map.removeLayer(markers.myPos);
+                map.removeLayer(markers.warehouse);
 
+                init();
+            }
+        })
+
+    } else {
+        alert("Δεν μπορείτε να αναλάβετε περισσότερα από 4 tasks ταυτόχρονα");
+    }
+}
+
+function cancelTaskButtonClicked(id) {
+
+    fetch(`http://localhost:${PORT}/rescuer/cancelTask`, {
+        method: "POST",
+        body: JSON.stringify({ taskId: id }),
+        headers: {
+            'Content-Type': 'application/json'
+        },
+    }).then((response) => {
+        if (response.status == 200) {
             for (let m of markers.currentTasks)
                 map.removeLayer(m);
 
@@ -330,50 +371,21 @@ function getTaskButtonClicked(id) {
             markers.currentTasks = [];
             markers.tasks = [];
 
+            lines[0].remove();
+            lines = [];
+
+            for (let m of markers.currentTasks)
+                map.removeLayer(m);
+
+            for (let m of markers.tasks)
+                map.removeLayer(m);
+
+            map.removeLayer(markers.myPos);
+            map.removeLayer(markers.warehouse);
+
             init();
         }
-
-    } else {
-        alert("Δεν μπορείτε να αναλάβετε περισσότερα από 4 tasks ταυτόχρονα");
-    }
-}
-
-function cancelTaskButtonClicked(id) {
-    // TODO: Update the DB
-
-    const index = user.currentTasks.findIndex(element => element.id === id);
-
-    if (index !== -1) {
-        const [elem] = user.currentTasks.splice(index, 1);
-
-        tasks.push(elem);
-
-        for (let m of markers.currentTasks)
-            map.removeLayer(m);
-
-        for (let m of markers.tasks)
-            map.removeLayer(m);
-
-        map.removeLayer(markers.myPos);
-        map.removeLayer(markers.warehouse);
-
-        markers.currentTasks = [];
-        markers.tasks = [];
-
-        lines[0].remove();
-        lines = [];
-
-        for (let m of markers.currentTasks)
-            map.removeLayer(m);
-
-        for (let m of markers.tasks)
-            map.removeLayer(m);
-
-        map.removeLayer(markers.myPos);
-        map.removeLayer(markers.warehouse);
-
-        init();
-    }
+    })
 }
 
 unloadButton.addEventListener("click", async () => {
@@ -438,6 +450,65 @@ function cancelLoading() {
 
     init();
     user.loadProducts = [];
+}
+
+function completeButtonClicked(id) {
+    const tastIndex = user.currentTasks.findIndex(t => t.id == id);
+    const task = user.currentTasks[tastIndex];
+
+    console.log(task)
+
+    const isSubset = (a, b) => {
+        return a.every(aItem => {
+            const bItem = b.find(bItem => bItem.id === aItem.id);
+            return bItem && bItem.amount >= aItem.amount;
+        });
+    };
+
+    if (task.type == 'Προσφορά' ? true : isSubset(task.products, user.load)) {
+
+        fetch(`http://localhost:${PORT}/rescuer/completeTask`, {
+            method: "POST",
+            body: JSON.stringify({ taskId: id }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then((response) => {
+            if (response.status == 200) {
+
+                for (let m of markers.currentTasks)
+                    map.removeLayer(m);
+
+                for (let m of markers.tasks)
+                    map.removeLayer(m);
+
+                map.removeLayer(markers.myPos);
+                map.removeLayer(markers.warehouse);
+
+                markers.currentTasks = [];
+                markers.tasks = [];
+
+                lines[0].remove();
+                lines = [];
+
+                for (let m of markers.currentTasks)
+                    map.removeLayer(m);
+
+                for (let m of markers.tasks)
+                    map.removeLayer(m);
+
+                map.removeLayer(markers.myPos);
+                map.removeLayer(markers.warehouse);
+
+                init();
+
+            }
+        })
+
+    }
+    else
+        alert("Not enough products")
+
 }
 
 activeSwitch.addEventListener("click", async () => {

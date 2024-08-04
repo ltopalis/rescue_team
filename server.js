@@ -9,7 +9,8 @@ import {
     addCategory, addProduct, updateProductAmount,
     initRescuer, updatePosition, unloadProducts,
     getWarehouseProducts, loadProducts, setActive,
-    getProductsOnVan
+    getProductsOnVan, getTask, cancelTask,
+    completeTask
 } from './connection.js'
 
 const PORT = 3000;
@@ -339,6 +340,38 @@ app.post("/rescuer/setActivity", async (req, res) => {
     }
     else res.sendStatus(505);
 
+});
+
+app.post('/rescuer/getTask', async (req, res) => {
+
+    if (req.session.userData) {
+        req.body.username = req.session.userData.username;
+        const response = await getTask(req.body);
+
+        res.send(response);
+    }
+    else res.sendStatus(505);
+});
+
+app.post("/rescuer/cancelTask", async (req, res) => {
+    if (req.session.userData) {
+        const response = await cancelTask(req.body);
+
+        res.status(200).send(response);
+    }
+    else res.sendStatus(505);
+});
+
+app.post("/rescuer/completeTask", async (req, res) => {
+
+    if (req.session.userData) {
+        req.body.username = req.session.userData.username;
+
+        const response = await completeTask(req.body);
+
+        res.status(200).send(response);
+    }
+    else res.sendStatus(505);
 });
 
 app.listen(PORT, () => {
