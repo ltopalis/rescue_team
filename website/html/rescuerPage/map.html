@@ -75,6 +75,43 @@
                         data-bs-target="#warehouse-products">Φόρτωση</a>
                     <a class="btn btn-info" id="unload">Εκφόρτωση</a>
                 </div>
+
+                <div class="container">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="offers-checkbox"
+                                    id="offers-checkbox" checked>
+                                <label class="form-check-label" for="offers-checkbox">Προσφορές</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="requests-checkbox"
+                                    id="requests-checkbox" checked>
+                                <label class="form-check-label" for="requests-checkbox">Αιτήσεις</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="free-tasks-checkbox"
+                                    id="free-tasks-checkbox" checked>
+                                <label class="form-check-label" for="free-tasks-checkbox">Μη δεσμευμένες
+                                    αιτήσεις</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="my-tasks-checkbox"
+                                    id="my-tasks-checkbox" checked>
+                                <label class="form-check-label" for="my-tasks-checkbox">Αιτήσεις μου</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -103,8 +140,10 @@
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="cancelLoading()">Ακύρωση</button>
-                    <button type="button" class="btn btn-primary" onclick="loadToVan()" data-bs-dismiss="modal">Φόρτωση</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        onclick="cancelLoading()">Ακύρωση</button>
+                    <button type="button" class="btn btn-primary" onclick="loadToVan()"
+                        data-bs-dismiss="modal">Φόρτωση</button>
                 </div>
             </div>
         </div>

@@ -29,7 +29,15 @@ const citizenIcon = L.Icon.extend({
 const loadButton = document.getElementById("load");
 const unloadButton = document.getElementById("unload");
 const activeSwitch = document.getElementById("active-checkbox");
+const offersSwitch = document.getElementById("offers-checkbox");
+const requestsSwitch = document.getElementById("requests-checkbox");
+const freeTasksSwitch = document.getElementById("free-tasks-checkbox");
+const myTasksSwitch = document.getElementById('my-tasks-checkbox');
 activeSwitch.checked = false;
+offersSwitch.checked = true;
+requestsSwitch.checked = true;
+freeTasksSwitch.checked = true;
+myTasksSwitch.checked = true;
 let lines = [];
 
 async function init() {
@@ -47,6 +55,8 @@ async function init() {
 
                 tasks = data.tasks;
 
+                const activeTasks = [offersSwitch.checked ? 'Προσφορά' : null, requestsSwitch.checked ? 'Αίτηση' : null];
+
                 markers.warehouse = L.marker([data.warehouse.lat, data.warehouse.lng], { draggable: false, icon: new warehouseIcon() }).addTo(map);
                 markers.myPos = L.marker([data.myPos.lat, data.myPos.lng], { draggable: true, icon: new rescuerIcon() }).addTo(map);
 
@@ -57,44 +67,49 @@ async function init() {
                 markers.myPos.bindPopup(popupMsg);
 
                 for (let task of user.currentTasks) {
-                    let newMarker = L.marker([task.location.lat, task.location.lng], {
-                        draggable: false, icon: new citizenIcon({
-                            iconUrl: (task.type == "Προσφορά" ? "../../icons/people-blue.png" : "../../icons/people-red.png")
-                        })
-                    }).addTo(map);
+                    if (activeTasks.includes(task.type)) {
+                        let newMarker = L.marker([task.location.lat, task.location.lng], {
+                            draggable: false, icon: new citizenIcon({
+                                iconUrl: (task.type == "Προσφορά" ? "../../icons/people-blue.png" : "../../icons/people-red.png")
+                            })
+                        }).addTo(map);
 
-                    let popupMsg = `
+                        let popupMsg = `
                     Όνομα:      ${task.name}<br>
                     Τηλέφωνο:   ${task.username}<br>
 
                     Προϊόν:     `;
-                    for (let pr of task.products)
-                        popupMsg += `x${pr.amount} ${pr.name}, `;
-                    popupMsg += `</br>Αναλήφθηκε: ${task.acceptDate}`;
+                        for (let pr of task.products)
+                            popupMsg += `x${pr.amount} ${pr.name}, `;
+                        popupMsg += `</br>Αναλήφθηκε: ${task.acceptDate}`;
 
-                    newMarker.bindPopup(popupMsg);
+                        newMarker.bindPopup(popupMsg);
 
-                    markers.currentTasks.push(newMarker);
+                        markers.currentTasks.push(newMarker);
+                    }
                 }
 
-                for (let task of tasks) {
-                    let newMarker = L.marker([task.location.lat, task.location.lng], {
-                        draggable: false, icon: new citizenIcon({
-                            iconUrl: (task.type == "Προσφορά" ? "../../icons/people.png" : "../../icons/people-red.png")
-                        })
-                    }).addTo(map);
+                if (myTasksSwitch.checked) {
 
-                    let popupMsg = `
+                    for (let task of tasks) {
+                        let newMarker = L.marker([task.location.lat, task.location.lng], {
+                            draggable: false, icon: new citizenIcon({
+                                iconUrl: (task.type == "Προσφορά" ? "../../icons/people.png" : "../../icons/people-red.png")
+                            })
+                        }).addTo(map);
+
+                        let popupMsg = `
                     Όνομα:      ${task.name}<br>
                     Τηλέφωνο:   ${task.username}<br> 
                     Προϊόν:     `;
-                    for (let pr of task.products)
-                        popupMsg += `x${pr.amount} ${pr.name}, `;
-                    popupMsg += `</br><a class='btn btn-warning' id='getTaskButtonFor_${task.id}' onclick='getTaskButtonClicked(${task.id})'>Ανάληψη</a>`;
+                        for (let pr of task.products)
+                            popupMsg += `x${pr.amount} ${pr.name}, `;
+                        popupMsg += `</br><a class='btn btn-warning' id='getTaskButtonFor_${task.id}' onclick='getTaskButtonClicked(${task.id})'>Ανάληψη</a>`;
 
-                    newMarker.bindPopup(popupMsg);
+                        newMarker.bindPopup(popupMsg);
 
-                    markers.tasks.push(newMarker);
+                        markers.tasks.push(newMarker);
+                    }
                 }
 
                 markers.myPos.on('dragend', async (e) => {
@@ -123,18 +138,21 @@ async function init() {
                         unloadButton.classList.add("disabled");
                     }
 
-                    for (let task of user.currentTasks) {
+                    if (myTasksSwitch.checked) {
 
-                        const index = markers.currentTasks.findIndex(marker => marker.getLatLng().lat == task.location.lat && marker.getLatLng().lng == task.location.lng);
-                        const dist = markers.myPos.getLatLng().distanceTo(markers.currentTasks[index].getLatLng());
+                        for (let task of user.currentTasks) {
 
-                        const btn = document.getElementById(`completeButtonTaskFor_${task.id}`);
+                            const index = markers.currentTasks.findIndex(marker => marker.getLatLng().lat == task.location.lat && marker.getLatLng().lng == task.location.lng);
+                            const dist = markers.myPos.getLatLng().distanceTo(markers.currentTasks[index].getLatLng());
 
-                        if (dist > 50)
-                            btn.classList.add("disabled");
-                        else
-                            btn.classList.remove("disabled");
+                            const btn = document.getElementById(`completeButtonTaskFor_${task.id}`);
 
+                            if (dist > 50)
+                                btn.classList.add("disabled");
+                            else
+                                btn.classList.remove("disabled");
+
+                        }
                     }
 
                 });
@@ -162,7 +180,10 @@ function updateTasksPanel() {
 
     taskPanel.innerHTML = "";
 
+    const activeTasks = [offersSwitch.checked ? 'Προσφορά' : null, requestsSwitch.checked ? 'Αίτηση' : null];
+
     for (let task of user.currentTasks) {
+        if (!activeTasks.includes(task.type)) continue;
         let taskTitle = document.createElement("h5");
         taskTitle.classList.add("card-title");
         taskTitle.innerText = task.name;
@@ -314,7 +335,7 @@ let markers = {
 };
 
 const map = L.map('map');
-map.setView([38.0, 23.85], 8);
+map.setView([38.0, 23.85], 11);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
 init();
@@ -519,4 +540,104 @@ activeSwitch.addEventListener("click", async () => {
             'Content-Type': 'application/json'
         }
     });
+});
+
+offersSwitch.addEventListener("click", () => {
+    for (let m of markers.currentTasks)
+        map.removeLayer(m);
+
+    for (let m of markers.tasks)
+        map.removeLayer(m);
+
+    map.removeLayer(markers.myPos);
+    map.removeLayer(markers.warehouse);
+
+    markers.currentTasks = [];
+    markers.tasks = [];
+
+    for (let m of markers.currentTasks)
+        map.removeLayer(m);
+
+    for (let m of markers.tasks)
+        map.removeLayer(m);
+
+    map.removeLayer(markers.myPos);
+    map.removeLayer(markers.warehouse);
+
+    init();
+});
+
+requestsSwitch.addEventListener("click", () => {
+    for (let m of markers.currentTasks)
+        map.removeLayer(m);
+
+    for (let m of markers.tasks)
+        map.removeLayer(m);
+
+    map.removeLayer(markers.myPos);
+    map.removeLayer(markers.warehouse);
+
+    markers.currentTasks = [];
+    markers.tasks = [];
+
+    for (let m of markers.currentTasks)
+        map.removeLayer(m);
+
+    for (let m of markers.tasks)
+        map.removeLayer(m);
+
+    map.removeLayer(markers.myPos);
+    map.removeLayer(markers.warehouse);
+
+    init();
+});
+
+freeTasksSwitch.addEventListener("click", () => {
+    for (let m of markers.currentTasks)
+        map.removeLayer(m);
+
+    for (let m of markers.tasks)
+        map.removeLayer(m);
+
+    map.removeLayer(markers.myPos);
+    map.removeLayer(markers.warehouse);
+
+    markers.currentTasks = [];
+    markers.tasks = [];
+
+    for (let m of markers.currentTasks)
+        map.removeLayer(m);
+
+    for (let m of markers.tasks)
+        map.removeLayer(m);
+
+    map.removeLayer(markers.myPos);
+    map.removeLayer(markers.warehouse);
+
+    init();
+});
+
+myTasksSwitch.addEventListener("click", () => {
+    for (let m of markers.currentTasks)
+        map.removeLayer(m);
+
+    for (let m of markers.tasks)
+        map.removeLayer(m);
+
+    map.removeLayer(markers.myPos);
+    map.removeLayer(markers.warehouse);
+
+    markers.currentTasks = [];
+    markers.tasks = [];
+
+    for (let m of markers.currentTasks)
+        map.removeLayer(m);
+
+    for (let m of markers.tasks)
+        map.removeLayer(m);
+
+    map.removeLayer(markers.myPos);
+    map.removeLayer(markers.warehouse);
+
+    init();
 });
