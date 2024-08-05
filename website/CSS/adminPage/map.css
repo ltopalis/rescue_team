@@ -1,0 +1,23 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+.container-fluid {
+    height: 100%;
+}
+
+.checkboxes-row {
+    height: 10%;
+    /* Adjust this value based on how much space you want for checkboxes */
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.content-div {
+    height: 90%;
+    /* Adjust accordingly */
+    overflow: auto;
+}

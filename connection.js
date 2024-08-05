@@ -300,3 +300,99 @@ export async function completeTask(params) {
 
     return response;
 }
+
+export async function updateWarehousePostition(params) {
+    const [response] = await db.query(`
+        UPDATE LOCATIONS
+        SET LATITUDE = ?, LONGTITUDE = ?
+        WHERE USER = 'ADMIN'`, [params.lat, params.lng]);
+
+    return response;
+}
+
+export async function initAdminMap() {
+    let [response] = await db.query(`
+        SELECT LATITUDE, LONGTITUDE
+        FROM LOCATIONS
+        WHERE USER = 'ADMIN'`);
+
+    const data = {
+        warehouse: { lat: response[0].LATITUDE, lng: response[0].LONGTITUDE },
+        rescuers: [],
+        tasks: []
+    };
+
+    [response] = await db.query(`
+        SELECT  USERS.USERNAME, 
+                USERS.NAME, 
+                USERS.ACTIVE, 
+                LOCATIONS.LONGTITUDE, 
+                LOCATIONS.LATITUDE, 
+                VAN_LOAD.amount AS load_amount, 
+                PRODUCTS.PRODUCT_NAME AS load_name, 
+                UserOffersRequests.id AS taskId,
+                PRODUCTS.ID AS prodId
+        FROM USERS 
+            LEFT JOIN LOCATIONS ON USERS.USERNAME = LOCATIONS.USER
+            JOIN VAN_LOAD ON VAN_LOAD.rescuer = USERS.USERNAME
+            JOIN PRODUCTS ON PRODUCTS.ID = VAN_LOAD.product
+            JOIN UserOffersRequests ON UserOffersRequests.assumedBy = USERS.USERNAME
+        WHERE USERS.ROLE = 'RESCUER' AND PRODUCTS.DISCONTINUED = 0 AND UserOffersRequests.status != 'completed'`);
+
+    for (let row of response) {
+        const index = data.rescuers.findIndex(rescuer => rescuer.username == row.USERNAME);
+
+        if (index === -1)
+            data.rescuers.push({
+                username: row['USERNAME'],
+                name: row['NAME'],
+                active: row.ACTIVE ? true : false,
+                location: { lat: row.LATITUDE, lng: row.LONGTITUDE },
+                products: [{ id: row.prodId, name: row.load_name, amount: row.load_amount }],
+                tasks: [row.taskId],
+                _lines: []
+            });
+        else {
+            if (data.rescuers[index].products.findIndex(prod => prod.id == row.prodId) === -1)
+                data.rescuers[index].products.push({ id: row.prodId, name: row.load_name, amount: row.load_amount });
+
+            if (!data.rescuers[index].tasks.includes(row.taskId))
+                data.rescuers[index].tasks.push(row.taskId);
+        }
+    }
+
+    [response] = await db.query(`
+        SELECT  ProductsOffersRequests.offerId AS taskId, 
+                USERS.USERNAME, 
+                USERS.NAME, 
+                UserOffersRequests.type, 
+                LOCATIONS.LONGTITUDE, 
+                LOCATIONS.LATITUDE, 
+                PRODUCTS.ID AS prodId, 
+                PRODUCTS.PRODUCT_NAME AS prodName, 
+                ProductsOffersRequests.amount AS prodAmount
+        FROM UserOffersRequests 
+            JOIN ProductsOffersRequests ON UserOffersRequests.id = ProductsOffersRequests.offerId
+            JOIN USERS ON USERS.USERNAME = UserOffersRequests.user
+            JOIN LOCATIONS ON USERS.USERNAME = LOCATIONS.USER
+            JOIN PRODUCTS ON PRODUCTS.ID = ProductsOffersRequests.product
+        WHERE UserOffersRequests.status != 'completed'`);
+
+    for (let task of response) {
+        const index = data.tasks.findIndex(t => t.id == task.taskId);
+
+        if (index === -1)
+            data.tasks.push({
+                name: task.NAME,
+                username: task.USERNAME,
+                id: task.taskId,
+                type: task.type,
+                location: { lat: task.LATITUDE, lng: task.LONGTITUDE },
+                products: [{ id: task.prodId, name: task.prodName, amount: task.prodAmount }]
+            });
+        else
+            data.tasks[index].products.push({ id: task.prodId, name: task.prodName, amount: task.prodAmount });
+    }
+
+    return data;
+}

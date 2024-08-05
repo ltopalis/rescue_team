@@ -10,7 +10,7 @@ import {
     initRescuer, updatePosition, unloadProducts,
     getWarehouseProducts, loadProducts, setActive,
     getProductsOnVan, getTask, cancelTask,
-    completeTask
+    completeTask, updateWarehousePostition, initAdminMap
 } from './connection.js'
 
 const PORT = 3000;
@@ -278,6 +278,18 @@ app.get("/admin/getProductsOnVans", async (req, res) => {
     res.send(response);
 
 });
+
+app.post("/admin/updateWarehousePosition", async (req, res) => {
+    const response = await updateWarehousePostition(req.body);
+
+    res.status(200).send(response);
+});
+
+app.get('/admin/initMap', async (req, res) => {
+    const response = await initAdminMap();
+
+    res.status(200).send(response);
+})
 
 
 /////////////////////////////////////////////////
