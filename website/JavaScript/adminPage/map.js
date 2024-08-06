@@ -116,6 +116,7 @@ function addMarkersToMap() {
 
                                 const taskData = data.tasks[index];
 
+                                if (taskData == null) continue;
                                 if (taskData.type !== 'offer') continue;
 
                                 pathCoords.push([rescuer.location.lat, rescuer.location.lng], [taskData.location.lat, taskData.location.lng]);
@@ -129,6 +130,7 @@ function addMarkersToMap() {
 
                                 const taskData = data.tasks[index];
 
+                                if (taskData == null) continue;
                                 if (taskData.type !== 'request') continue;
 
                                 pathCoords.push([rescuer.location.lat, rescuer.location.lng], [taskData.location.lat, taskData.location.lng]);
@@ -178,6 +180,7 @@ function addMarkersToMap() {
 
                                 const taskData = data.tasks[index];
 
+                                if (taskData == null) continue;
                                 if (taskData.type !== 'offer') continue;
 
                                 takenTasks.push(task);
@@ -193,6 +196,7 @@ function addMarkersToMap() {
 
                                 const taskData = data.tasks[index];
 
+                                if (taskData == null) continue;
                                 if (taskData.type !== 'request') continue;
 
                                 takenTasks.push(task);
@@ -234,7 +238,7 @@ function addMarkersToMap() {
         if (!freeCheckbox.checked && !takenTasks.includes(task.id)) continue;
 
 
-        const taskMarker = L.marker([task.location.lat, task.location.lng], { draggable: false, icon: new citizenIcon() }).addTo(map);
+        const taskMarker = L.marker([task.location.lat, task.location.lng], { draggable: false, icon: new citizenIcon((task.type === 'offer' ? { iconUrl: '../../icons/people-red.png' } : null)) }).addTo(map);
 
         let popupMsg = `${task.name}</br>${task.username}${task.takenDate == undefined ? '' : '</br>' + task.takenDate}`;
 

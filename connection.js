@@ -323,21 +323,21 @@ export async function initAdminMap() {
     };
 
     [response] = await db.query(`
-        SELECT  USERS.USERNAME, 
-                USERS.NAME, 
-                USERS.ACTIVE, 
-                LOCATIONS.LONGTITUDE, 
-                LOCATIONS.LATITUDE, 
-                VAN_LOAD.amount AS load_amount, 
-                PRODUCTS.PRODUCT_NAME AS load_name, 
-                UserOffersRequests.id AS taskId,
-                PRODUCTS.ID AS prodId
+        SELECT  USERS.USERNAME AS USERNAME,
+                USERS.NAME AS NAME,
+                USERS.ACTIVE AS ACTIVE,
+                LOCATIONS.LONGTITUDE AS LONGTITUDE,
+                LOCATIONS.LATITUDE AS LATITUDE,
+                VAN_LOAD.amount AS prodAmount,
+                PRODUCTS.PRODUCT_NAME AS prodName,
+                PRODUCTS.ID AS prodId,
+                UserOffersRequests.id AS taskId
         FROM USERS 
-            LEFT JOIN LOCATIONS ON USERS.USERNAME = LOCATIONS.USER
-            JOIN VAN_LOAD ON VAN_LOAD.rescuer = USERS.USERNAME
+	        JOIN LOCATIONS ON USERS.USERNAME = LOCATIONS.USER
+            LEFT JOIN VAN_LOAD ON VAN_LOAD.rescuer = USERS.USERNAME
             JOIN PRODUCTS ON PRODUCTS.ID = VAN_LOAD.product
-            JOIN UserOffersRequests ON UserOffersRequests.assumedBy = USERS.USERNAME
-        WHERE USERS.ROLE = 'RESCUER' AND PRODUCTS.DISCONTINUED = 0 AND UserOffersRequests.status != 'completed'`);
+            LEFT JOIN UserOffersRequests ON UserOffersRequests.assumedBy = USERS.USERNAME
+        WHERE USERS.ROLE = 'RESCUER' AND UserOffersRequests.completedOn IS NULL`);
 
     for (let row of response) {
         const index = data.rescuers.findIndex(rescuer => rescuer.username == row.USERNAME);
@@ -348,13 +348,13 @@ export async function initAdminMap() {
                 name: row['NAME'],
                 active: row.ACTIVE ? true : false,
                 location: { lat: row.LATITUDE, lng: row.LONGTITUDE },
-                products: [{ id: row.prodId, name: row.load_name, amount: row.load_amount }],
+                products: [{ id: row.prodId, name: row.prodName, amount: row.prodAmount }],
                 tasks: [row.taskId],
                 _lines: []
             });
         else {
             if (data.rescuers[index].products.findIndex(prod => prod.id == row.prodId) === -1)
-                data.rescuers[index].products.push({ id: row.prodId, name: row.load_name, amount: row.load_amount });
+                data.rescuers[index].products.push({ id: row.prodId, name: row.prodName, amount: row.prodAmount });
 
             if (!data.rescuers[index].tasks.includes(row.taskId))
                 data.rescuers[index].tasks.push(row.taskId);
@@ -393,6 +393,7 @@ export async function initAdminMap() {
         else
             data.tasks[index].products.push({ id: task.prodId, name: task.prodName, amount: task.prodAmount });
     }
+
 
     return data;
 }
