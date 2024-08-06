@@ -95,6 +95,8 @@ function addMarkersToMap() {
 
     });
 
+    markers.warehouse.bindPopup("Βάση");
+
     // rescuer
     let takenTasks = [];
     if (onlineCheckbox.checked) {

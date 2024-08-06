@@ -10,7 +10,8 @@ import {
     initRescuer, updatePosition, unloadProducts,
     getWarehouseProducts, loadProducts, setActive,
     getProductsOnVan, getTask, cancelTask,
-    completeTask, updateWarehousePostition, initAdminMap
+    completeTask, updateWarehousePostition, initAdminMap,
+    getAmountOfTasks, getAllProducts, createAnnouncement
 } from './connection.js'
 
 const PORT = 3000;
@@ -35,7 +36,7 @@ app.get("/", (req, res) => {
     // logged in
     if (req.session.userData != undefined) {
         if (req.session.userData.role == 'ADMIN')
-            res.status(200).sendFile(path.join(__dirname, "html", "adminPage", "addRescuer.html"));
+            res.status(200).sendFile(path.join(__dirname, "html", "adminPage", "admin.html"));
         else if (req.session.userData.role == 'CITIZEN')
             res.status(200).sendFile(path.join(__dirname, "html", "citizenPage", "citizen.html"));
         else if (req.session.userData.role == 'RESCUER')
@@ -83,7 +84,7 @@ app.post("/login", async (req, res) => {
         };
 
         if (user[0].ROLE == 'ADMIN')
-            res.send({ path: path.join("html", "adminPage", "addRescuer.html"), info: 'SUCCESS' });
+            res.send({ path: path.join("html", "adminPage", "admin.html"), info: 'SUCCESS' });
         else if (user[0].ROLE == 'CITIZEN')
             res.send({ path: path.join("html", "citizenPage", "index.html"), info: 'SUCCESS' });
         else if (user[0].ROLE == 'RESCUER')
@@ -289,8 +290,37 @@ app.get('/admin/initMap', async (req, res) => {
     const response = await initAdminMap();
 
     res.status(200).send(response);
-})
+});
 
+app.post('/admin/dashboard', async (req, res) => {
+
+    const response = await getAmountOfTasks(req.body);
+
+    for (let c in response)
+        if (response[c] === null)
+            response[c] = "0";
+
+    res.status(200).send(response);
+});
+
+app.get('/admin/getProductsForAnnouncement', async (req, res) => {
+
+    const response = await getAllProducts();
+
+    for (let r of response)
+        r.used = false;
+
+    res.status(200).send(response);
+
+});
+
+app.post('/admin/createAnnouncement', async (req, res) => {
+
+    const response = await createAnnouncement(req.body);
+
+
+    res.send(response);
+});
 
 /////////////////////////////////////////////////
 //////////////////// RESCUER ////////////////////
