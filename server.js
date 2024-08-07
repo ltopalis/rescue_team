@@ -11,7 +11,8 @@ import {
     getWarehouseProducts, loadProducts, setActive,
     getProductsOnVan, getTask, cancelTask,
     completeTask, updateWarehousePostition, initAdminMap,
-    getAmountOfTasks, getAllProducts, createAnnouncement
+    getAmountOfTasks, getAllProducts, createAnnouncement,
+    getAnnouncements
 } from './connection.js'
 
 const PORT = 3000;
@@ -38,7 +39,7 @@ app.get("/", (req, res) => {
         if (req.session.userData.role == 'ADMIN')
             res.status(200).sendFile(path.join(__dirname, "html", "adminPage", "admin.html"));
         else if (req.session.userData.role == 'CITIZEN')
-            res.status(200).sendFile(path.join(__dirname, "html", "citizenPage", "citizen.html"));
+            res.status(200).sendFile(path.join(__dirname, "html", "citizenPage", "history.html"));
         else if (req.session.userData.role == 'RESCUER')
             res.status(200).sendFile(path.join(__dirname, "html", "rescuerPage", "map.html"));
     }
@@ -86,7 +87,7 @@ app.post("/login", async (req, res) => {
         if (user[0].ROLE == 'ADMIN')
             res.send({ path: path.join("html", "adminPage", "admin.html"), info: 'SUCCESS' });
         else if (user[0].ROLE == 'CITIZEN')
-            res.send({ path: path.join("html", "citizenPage", "index.html"), info: 'SUCCESS' });
+            res.send({ path: path.join("html", "citizenPage", "history.html"), info: 'SUCCESS' });
         else if (user[0].ROLE == 'RESCUER')
             res.send({ path: path.join("html", "rescuerPage", "map.html"), info: 'SUCCESS' });
     }
@@ -415,6 +416,71 @@ app.post("/rescuer/completeTask", async (req, res) => {
     }
     else res.sendStatus(505);
 });
+
+/////////////////////////////////////////////////
+//////////////////// CITIZEN ////////////////////
+/////////////////////////////////////////////////
+
+app.get('/citizen/getAnnouncements', async (req, res) => {
+    const response = await getAnnouncements();
+
+    const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const year = date.getUTCFullYear();
+        const hours = String(date.getUTCHours()).padStart(2, '0');
+        const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+
+        return `${day}-${month}-${year} ${hours}:${minutes}`;
+    };
+
+    let data = [];
+
+    for (let announcement of response) {
+        const AnnouncementIndex = data.findIndex(d => d.id == announcement.announcementID);
+
+        console.log(announcement.announcementID, AnnouncementIndex);
+
+        if (AnnouncementIndex === -1)
+            data.push({
+                id: announcement.announcementID,
+                date: formatDate(announcement.date),
+                products: [{
+                    id: announcement.prodID,
+                    category: announcement.productCategory,
+                    name: announcement.productName,
+                    details: [{
+                        detail_name: announcement.detailName,
+                        detail_value: announcement.detailValue
+                    }]
+                }]
+            });
+        else {
+            const productIndex = data[AnnouncementIndex].products.findIndex(prod => prod.id == announcement.prodID);
+
+            if (productIndex === -1)
+                data[AnnouncementIndex].products.push({
+                    id: announcement.prodID,
+                    category: announcement.productCategory,
+                    name: announcement.productName,
+                    details: [{
+                        detail_name: announcement.detailName,
+                        detail_value: announcement.detailValue
+                    }]
+                });
+            else
+                data[AnnouncementIndex].products[productIndex].details.push({
+                    detail_name: announcement.detailName,
+                    detail_value: announcement.detailValue
+                });
+
+        }
+    }
+
+    res.status(200).send(data);
+})
 
 app.listen(PORT, () => {
     console.log(`Server is sunning on Port ${PORT}`);

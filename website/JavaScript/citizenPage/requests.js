@@ -1,0 +1,3 @@
+"use strict"
+
+pageAccess("CITIZEN");

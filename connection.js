@@ -205,7 +205,8 @@ export async function initAdminMap() {
             JOIN USERS ON USERS.USERNAME = UserOffersRequests.user
             JOIN LOCATIONS ON USERS.USERNAME = LOCATIONS.USER
             JOIN PRODUCTS ON PRODUCTS.ID = ProductsOffersRequests.product
-        WHERE UserOffersRequests.status != 'completed'`);
+        WHERE UserOffersRequests.status != 'completed' 
+            OR UserOffersRequests.status != 'canceled'`);
 
     for (let task of response) {
         const index = data.tasks.findIndex(t => t.id == task.taskId);
@@ -229,7 +230,7 @@ export async function initAdminMap() {
 
 export async function getAmountOfTasks(params) {
 
-    let query = `SELECT SUM(CASE WHEN type = 'request' AND status = 'completed' THEN 1 ELSE 0 END) AS completed_requests, SUM(CASE WHEN type = 'offer' AND status = 'completed' THEN 1 ELSE 0 END) AS completed_offers, SUM(CASE WHEN type = 'request' AND status != 'completed' THEN 1 ELSE 0 END) AS not_completed_requests, SUM(CASE WHEN type = 'offer' AND status != 'completed' THEN 1 ELSE 0 END) AS not_completed_offers FROM UserOffersRequests `;
+    let query = `SELECT SUM(CASE WHEN type = 'request' AND status = 'completed' THEN 1 ELSE 0 END) AS completed_requests, SUM(CASE WHEN type = 'offer' AND status = 'completed' THEN 1 ELSE 0 END) AS completed_offers, SUM(CASE WHEN type = 'request' AND (status != 'completed' OR status != 'canceled') THEN 1 ELSE 0 END) AS not_completed_requests, SUM(CASE WHEN type = 'offer' AND (status != 'completed' OR status != 'canceled') THEN 1 ELSE 0 END) AS not_completed_offers FROM UserOffersRequests `;
 
     let response;
     if (params.start === null && params.end === null)
@@ -319,7 +320,7 @@ export async function initRescuer(username) {
             JOIN PRODUCTS as pr1 ON pr1.ID = por1.product 
             JOIN LOCATIONS as loc ON loc.USER = uor1.user
             LEFT JOIN USERS as u2 ON u2.USERNAME = uor1.assumedBy 
-        WHERE status != 'completed' 
+        WHERE (status != 'completed' OR status != 'canceled')
             AND (uor1.assumedBy = ? OR uor1.assumedBy IS NULL)`, [username]);
 
     data.currentTasks = [];
@@ -438,5 +439,23 @@ export async function completeTask(params) {
     return response;
 }
 
+/////////////////////////////////////////////////
+//////////////////// CITIZEN ////////////////////
+/////////////////////////////////////////////////
 
+export async function getAnnouncements() {
+    const [response] = await db.query(`
+        SELECT  ANNOUNCEMENT.id AS announcementID,
+                ANNOUNCEMENT.date,
+                PRODUCTS.PRODUCT_NAME AS productName,
+                PRODUCTS.CATEGORY AS productCategory,
+                DETAILS_OF_PRODUCTS.DETAIL_NAME AS detailName,
+                DETAILS_OF_PRODUCTS.DETAIL_VALUE AS detailValue,
+                PRODUCTS.ID AS prodID
+        FROM ANNOUNCEMENT
+            JOIN PRODUCTS ON PRODUCTS.ID = ANNOUNCEMENT.product
+            JOIN DETAILS_OF_PRODUCTS ON DETAILS_OF_PRODUCTS.PRODUCT = PRODUCTS.ID
+        ORDER BY ANNOUNCEMENT.date DESC`);
 
+    return response;
+}

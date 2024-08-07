@@ -1,0 +1,17 @@
+.offerButton {
+    background-color: #55ced9;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.offerButton:hover {
+    background-color: #59b4bd;
+}
