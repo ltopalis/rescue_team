@@ -1,6 +1,6 @@
 html,
 body {
-    height: 100%;
+    height: 80vh;
     margin: 0;
 }
 
@@ -9,15 +9,13 @@ body {
 }
 
 .checkboxes-row {
-    height: 10%;
-    /* Adjust this value based on how much space you want for checkboxes */
+    height: 5vh;
     display: flex;
     align-items: center;
     justify-content: space-around;
 }
 
 .content-div {
-    height: 90%;
-    /* Adjust accordingly */
+    height: 85vh;
     overflow: auto;
 }

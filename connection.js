@@ -164,7 +164,7 @@ export async function initAdminMap() {
         FROM USERS 
 	        JOIN LOCATIONS ON USERS.USERNAME = LOCATIONS.USER
             LEFT JOIN VAN_LOAD ON VAN_LOAD.rescuer = USERS.USERNAME
-            JOIN PRODUCTS ON PRODUCTS.ID = VAN_LOAD.product
+            LEFT JOIN PRODUCTS ON PRODUCTS.ID = VAN_LOAD.product
             LEFT JOIN UserOffersRequests ON UserOffersRequests.assumedBy = USERS.USERNAME
         WHERE USERS.ROLE = 'RESCUER' AND UserOffersRequests.completedOn IS NULL`);
 
@@ -177,8 +177,8 @@ export async function initAdminMap() {
                 name: row['NAME'],
                 active: row.ACTIVE ? true : false,
                 location: { lat: row.LATITUDE, lng: row.LONGTITUDE },
-                products: [{ id: row.prodId, name: row.prodName, amount: row.prodAmount }],
-                tasks: [row.taskId],
+                products: row.prodId ? [{ id: row.prodId, name: row.prodName, amount: row.prodAmount }] : [],
+                tasks: row.taskId ? [row.taskId] : [],
                 _lines: []
             });
         else {

@@ -33,6 +33,15 @@ CREATE TABLE IF NOT EXISTS VAN_LOAD(
                                     FOREIGN KEY (product) REFERENCES PRODUCTS(ID),
                                     FOREIGN KEY (rescuer) REFERENCES USERS(USERNAME));
 
+CREATE TABLE IF NOT EXISTS ANNOUNCEMENT(
+                                        id      INT       NOT NULL AUTO_INCREMENT,
+                                        product INT       NOT NULL,
+                                        date    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+
+                                        PRIMARY KEY(id, product),
+                                        FOREIGN KEY(product) REFERENCES PRODUCTS(ID)
+);
+
 DELIMITER $$
 
 CREATE PROCEDURE ADD_CATEGORY(IN p_CATEGORY VARCHAR(50))

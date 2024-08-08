@@ -88,17 +88,34 @@ END $$
 
 DELIMITER ;
 
-INSERT INTO USERS     VALUE ('ADMIN', "ADMIN", "ADMIN", "ADMIN", NULL); -- THE COORDINATES OF ADMIN REPRESENT THE COORDINATES OF WAREHOUSE 
-INSERT INTO LOCATIONS VALUE ('ADMIN', 23.735404014587406, 37.97586815961329);
+INSERT INTO USERS VALUES  ('6925874523', 'rescuer', 'Jeanne',  'RESCUER', 0),
+                          ('6942384507', 'rescuer', 'Annie',   'RESCUER', 0),
+                          ('6942387456', 'citizen', 'Dangelo', 'CITIZEN', NULL),
+                          ('6945203357', 'rescuer', 'Tiffany', 'RESCUER', 0),
+                          ('6945384502', 'rescuer', 'Adam',    'RESCUER', 0),
+                          ('6952147620', 'citizen', 'Kai',     'CITIZEN', NULL),
+                          ('6952486520', 'rescuer', 'Samuel',  'RESCUER', 0),
+                          ('6972004599', 'rescuer', 'Hunter',  'RESCUER', 0),
+                          ('6972148630', 'citizen', 'Dylan',   'CITIZEN', NULL),
+                          ('6974106795', 'rescuer', 'Donald',  'RESCUER', 0),
+                          ('6975384698', 'rescuer', 'Lydia',   'RESCUER', 0),
+                          ('6979531485', 'citizen', 'Renata',  'CITIZEN', NULL),
+                          ('6985247630', 'citizen', 'Adler',   'CITIZEN', NULL),
+                          ('6985357420', 'citizen', 'Robert',  'CITIZEN', NULL),
+                          ('ADMIN',      'ADMIN',   'ADMIN',   'ADMIN',   NULL); -- THE COORDINATES OF ADMIN REPRESENT THE COORDINATES OF WAREHOUSE 
 
-INSERT INTO USERS     VALUE ('6945384502', "rescuer", "Adam", "RESCUER", FALSE);
-INSERT INTO LOCATIONS VALUE ('6945384502', 23.178512286321048, 37.98529260096583);
-
-INSERT INTO USERS     VALUE ('6925874523', "rescuer", "Jeanne", "RESCUER", FALSE);
-INSERT INTO LOCATIONS VALUE ('6925874523', 23.680285104372665, 38.01422306032742);
-
-INSERT INTO USERS     VALUE ('6952486520', "rescuer", "Samuel", "RESCUER", FALSE);
-INSERT INTO LOCATIONS VALUE ('6952486520', 23.787440201552055, 37.93164766971562);
-
-INSERT INTO USERS     VALUE ('6985357420', "citizen", "Robert", "CITIZEN", NULL);
-INSERT INTO LOCATIONS VALUE ('6985357420', 23.69310447021422, 37.997984409400686);
+INSERT INTO LOCATIONS VALUES  ('6925874523', 23.680285104372665, 38.01422306032742),
+                              ('6942384507', 23.75645936915274,  38.008397673980205),
+                              ('6942387456', 23.774945101238153, 37.99724263489743),
+                              ('6945203357', 23.686115117219096, 37.97856244300957),
+                              ('6945384502', 23.750418616997905, 37.97765260701589),
+                              ('6952147620', 23.74152907647424,  38.00786838467143),
+                              ('6952486520', 23.787440201552055, 37.93164766971562),
+                              ('6972004599', 23.702354660299708, 37.94988705705418),
+                              ('6972148630', 23.708481822213773, 37.933062680075096),
+                              ('6974106795', 23.781522818543493, 38.00023082294719),
+                              ('6975384698', 23.70361186067852,  37.944267453252756),
+                              ('6979531485', 23.683677860777987, 37.97447456836173),
+                              ('6985247630', 23.73127585560641,  37.94735712858567),
+                              ('6985357420', 23.69310447021422,  37.997984409400686),
+                              ('ADMIN',      23.735404014587406, 37.97586815961329);
