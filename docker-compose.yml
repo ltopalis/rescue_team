@@ -7,6 +7,8 @@ services:
       MYSQL_DATABASE: CEID_RESCUE_PROGRAM
       MYSQL_USER: test_user
       MYSQL_PASSWORD: test_password
+    ports:
+      - 3306:3306
     networks:
       - mynetwork
     volumes:
