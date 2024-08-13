@@ -206,7 +206,7 @@ export async function initAdminMap() {
             JOIN LOCATIONS ON USERS.USERNAME = LOCATIONS.USER
             JOIN PRODUCTS ON PRODUCTS.ID = ProductsOffersRequests.product
         WHERE UserOffersRequests.status != 'completed' 
-            OR UserOffersRequests.status != 'canceled'`);
+            AND UserOffersRequests.status != 'canceled'`);
 
     for (let task of response) {
         const index = data.tasks.findIndex(t => t.id == task.taskId);
