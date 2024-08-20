@@ -159,14 +159,12 @@ export async function initAdminMap() {
                 LOCATIONS.LATITUDE AS LATITUDE,
                 VAN_LOAD.amount AS prodAmount,
                 PRODUCTS.PRODUCT_NAME AS prodName,
-                PRODUCTS.ID AS prodId,
-                UserOffersRequests.id AS taskId
+                PRODUCTS.ID AS prodId
         FROM USERS 
 	        JOIN LOCATIONS ON USERS.USERNAME = LOCATIONS.USER
             LEFT JOIN VAN_LOAD ON VAN_LOAD.rescuer = USERS.USERNAME
             LEFT JOIN PRODUCTS ON PRODUCTS.ID = VAN_LOAD.product
-            LEFT JOIN UserOffersRequests ON UserOffersRequests.assumedBy = USERS.USERNAME
-        WHERE USERS.ROLE = 'RESCUER' AND UserOffersRequests.completedOn IS NULL`);
+        WHERE USERS.ROLE = 'RESCUER'`);
 
     for (let row of response) {
         const index = data.rescuers.findIndex(rescuer => rescuer.username == row.USERNAME);
@@ -178,7 +176,7 @@ export async function initAdminMap() {
                 active: row.ACTIVE ? true : false,
                 location: { lat: row.LATITUDE, lng: row.LONGTITUDE },
                 products: row.prodId ? [{ id: row.prodId, name: row.prodName, amount: row.prodAmount }] : [],
-                tasks: row.taskId ? [row.taskId] : [],
+                tasks: [],
                 _lines: []
             });
         else {
@@ -188,6 +186,17 @@ export async function initAdminMap() {
             if (!data.rescuers[index].tasks.includes(row.taskId))
                 data.rescuers[index].tasks.push(row.taskId);
         }
+    }
+
+    [response] = await db.query(`
+        SELECT id, assumedBy
+        FROM UserOffersRequests
+        WHERE UserOffersRequests.status = 'inTransition'`);
+
+    for (let row of response) {
+        const index = data.rescuers.findIndex(rescuer => rescuer.username == row.assumedBy);
+
+        data.rescuers[index].tasks.push(row.id);
     }
 
     [response] = await db.query(`
@@ -457,4 +466,35 @@ export async function getAnnouncements() {
         ORDER BY ANNOUNCEMENT.date DESC`);
 
     return response;
+}
+
+export async function getOffersRequests(username) {
+    const [response] = await db.query(`
+        SELECT *
+        FROM UserOffersRequests
+	        JOIN ProductsOffersRequests ON UserOffersRequests.id = ProductsOffersRequests.offerId
+            JOIN PRODUCTS ON PRODUCTS.ID = ProductsOffersRequests.product
+        WHERE user = ?
+        ORDER BY createdOn DESC;`, username);
+
+    return response;
+}
+
+export async function cancelTaskFromCitizen(params) {
+
+    const [response] = await db.query("UPDATE UserOffersRequests SET status = 'canceled' WHERE id = ?", [params]);
+
+    return response;
+
+}
+
+export async function createTask(params) {
+    let [response] = await db.query(`INSERT INTO UserOffersRequests(user, type) VALUES(?, ?)`, [params.user, params.type]);
+
+    for (let prod of params.products)
+        await db.query(`
+            INSERT INTO ProductsOffersRequests
+            VALUES (?,?,?)`, [response.insertId, prod.product, prod.amount]);
+
+    return { status: 200 };
 }

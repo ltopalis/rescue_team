@@ -25,6 +25,9 @@ services:
       - mynetwork
     volumes:
       - ./website:/app/website
+      - ./server.js:/app/server.js
+      - ./connection.js:/app/connection.js
+      - ./.env:/app/.env
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin

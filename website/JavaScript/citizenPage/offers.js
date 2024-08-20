@@ -131,11 +131,26 @@ async function createOffer() {
 
     const amountTextFields = document.getElementsByClassName("amountProductTextField");
 
+    const data = { products: [], type: "offer" };
+
     for (let amountTF of amountTextFields)
         if (amountTF.value > 0) {
             const productID = amountTF.id.split("_")[1];
-            console.log(amountTF.value, productID);
+            data.products.push({ product: productID, amount: amountTF.value })
+
         }
+
+    const response = await fetch(`http://localhost:${PORT}/citizen/createTask`, {
+        method: 'POST',
+        headers: {
+            'Content-type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    }).then(response => {
+        if (response.status === 200) {
+            alert('Επιτυχής υποβολή');
+        }
+    })
 
 }
 

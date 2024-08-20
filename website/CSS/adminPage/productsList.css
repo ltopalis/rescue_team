@@ -33,3 +33,7 @@
 .restoreButton:hover {
     background-color: #2bc03c; 
 }
+
+td[rowspan] {
+    vertical-align: middle;
+}

@@ -12,7 +12,8 @@ import {
     getProductsOnVan, getTask, cancelTask,
     completeTask, updateWarehousePostition, initAdminMap,
     getAmountOfTasks, getAllProducts, createAnnouncement,
-    getAnnouncements
+    getAnnouncements, getOffersRequests, cancelTaskFromCitizen,
+    createTask
 } from './connection.js'
 
 const PORT = 3000;
@@ -441,8 +442,6 @@ app.get('/citizen/getAnnouncements', async (req, res) => {
     for (let announcement of response) {
         const AnnouncementIndex = data.findIndex(d => d.id == announcement.announcementID);
 
-        console.log(announcement.announcementID, AnnouncementIndex);
-
         if (AnnouncementIndex === -1)
             data.push({
                 id: announcement.announcementID,
@@ -480,7 +479,78 @@ app.get('/citizen/getAnnouncements', async (req, res) => {
     }
 
     res.status(200).send(data);
-})
+});
+
+app.get("/citizen/getOffersRequests", async (req, res) => {
+
+    function convertTime(dateString) {
+        if (dateString === null) return null;
+
+        const date = new Date(dateString);
+
+        const formattedDate = date.getFullYear() + '-' +
+            String(date.getMonth() + 1).padStart(2, '0') + '-' +
+            String(date.getDate()).padStart(2, '0') + ' ' +
+            String(date.getHours()).padStart(2, '0') + ':' +
+            String(date.getMinutes()).padStart(2, '0');
+
+        return formattedDate;
+    }
+
+    if (req.session.userData) {
+        const response = await getOffersRequests(req.session.userData.username);
+
+        let data = [];
+
+        for (let offReq of response) {
+            const index = data.findIndex(rec => rec.id === offReq.id);
+
+            if (index === -1)
+                data.push({
+                    "id": offReq.id,
+                    "type": offReq.type,
+                    "createdOn": convertTime(offReq.createdOn),
+                    "status": offReq.status,
+                    "assumedOn": convertTime(offReq.assumedOn),
+                    "completedOn": convertTime(offReq.completedOn),
+                    "products": [{
+                        "name": offReq.PRODUCT_NAME,
+                        "category": offReq.CATEGORY,
+                        "amount": offReq.amount
+                    }]
+                });
+            else
+                data[index].products.push({
+                    "name": offReq.PRODUCT_NAME,
+                    "category": offReq.CATEGORY,
+                    "amount": offReq.amount
+                })
+        }
+
+        res.status(200).send(data);
+    }
+    else
+        res.sendStatus(500);
+});
+
+app.post("/citizen/cancelTaskFromCitizen", async (req, res) => {
+    const response = await cancelTaskFromCitizen(req.body.id);
+
+    res.sendStatus(200);
+});
+
+app.post('/citizen/createTask', async (req, res) => {
+
+    if (req.session.userData) {
+
+        req.body.user = req.session.userData.username;
+
+        const response = await createTask(req.body);
+
+        res.status(200).send(response);
+    }
+
+});
 
 app.listen(PORT, () => {
     console.log(`Server is sunning on Port ${PORT}`);

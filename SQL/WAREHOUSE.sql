@@ -41,6 +41,31 @@ CREATE TABLE IF NOT EXISTS ANNOUNCEMENT(
                                         PRIMARY KEY(id, product),
                                         FOREIGN KEY(product) REFERENCES PRODUCTS(ID));
 
+CREATE TABLE IF NOT EXISTS UserOffersRequests(
+                                            id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+                                            user VARCHAR(50) NOT NULL,
+                                            type ENUM('request', 'offer') NOT NULL,
+                                            createdOn TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+                                            status ENUM('created', 'inTransition', 'completed', 'canceled') NOT NULL DEFAULT 'created',
+                                            assumedBy VARCHAR(50) DEFAULT NULL,
+                                            assumedOn TIMESTAMP DEFAULT NULL,
+                                            completedOn TIMESTAMP DEFAULT NULL,
+
+                                            FOREIGN KEY(user) REFERENCES USERS(USERNAME),
+                                            FOREIGN KEY(assumedBy) REFERENCES USERS(USERNAME)
+);
+
+CREATE TABLE IF NOT EXISTS ProductsOffersRequests(
+                                                offerId INT NOT NULL,
+                                                product INT NOT NULL,
+                                                amount INT NOT NULL,
+
+                                                PRIMARY KEY(offerId, product),
+                                                FOREIGN KEY(offerId) REFERENCES UserOffersRequests(id),
+                                                FOREIGN KEY(product) REFERENCES PRODUCTS(id)
+);
+
+
 DELIMITER $$
 
 CREATE PROCEDURE ADD_CATEGORY(IN p_CATEGORY VARCHAR(50))
@@ -284,68 +309,94 @@ BEGIN
     COMMIT;
 
 END$$
+
+CREATE PROCEDURE IF NOT EXISTS completeTask(
+                                            IN username VARCHAR(50),
+                                            IN taskId INT
+)
+BEGIN
+
+    DECLARE taskType ENUM('request', 'offer');
+    DECLARE prod INT;
+    DECLARE prod_found INT DEFAULT NULL;
+    DECLARE amou INT;
+
+    DECLARE finished INT DEFAULT 0;
+
+    DECLARE cursor_products CURSOR FOR
+        SELECT product, amount
+        FROM ProductsOffersRequests
+        WHERE offerId = taskId;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND
+    SET finished = 1;
+
+    OPEN cursor_products;
+
+    SELECT type INTO taskType
+    FROM UserOffersRequests
+    WHERE id = taskId;
+
+    IF taskType = 'request' THEN
+
+        SELECT product, amount INTO prod, amou
+        FROM ProductsOffersRequests
+        WHERE offerId = taskId;
+
+        START TRANSACTION;
+
+        UPDATE VAN_LOAD
+        SET amount = amount - amou
+        WHERE rescuer = username
+            AND product = prod;
+
+        UPDATE UserOffersRequests
+        SET completedOn = CURRENT_TIMESTAMP(),
+            status = 'completed'
+        WHERE id = taskId;
+
+        COMMIT;
+    ELSE
+
+        START TRANSACTION;
+
+        REPEAT
+            FETCH cursor_products INTO prod, amou;
+
+            IF NOT finished THEN
+                SELECT COUNT(*) INTO prod_found
+                FROM VAN_LOAD
+                WHERE rescuer = username
+                    AND product = prod;
+
+                IF prod_found = 0 THEN
+                    INSERT INTO VAN_LOAD(rescuer, amount, product) VALUES(username, amou, prod);
+                ELSE
+                    UPDATE VAN_LOAD
+                    SET amount = amount + amou
+                    WHERE rescuer = username
+                        AND product = prod;
+                END IF;
+            END IF;
+
+        UNTIL finished END REPEAT;
+
+        UPDATE UserOffersRequests
+        SET completedOn = CURRENT_TIMESTAMP(),
+            status = 'completed'
+        WHERE id = taskId;
+
+        COMMIT;
+
+    END IF;
+
+    CLOSE cursor_products;
+
+END $$
+
 DELIMITER ;
 
--- -- ADD CATEGORIES
--- CALL ADD_CATEGORY('Medicines');
-
--- -- ADD PRODUCTS
--- CALL ADD_NEW_PRODUCT('Medicines', 'Aspirin', 'pills', '40');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Aspirin', 'active substance', '500mg');
--- UPDATE WAREHOUSE SET AMOUNT = 9 WHERE PRODUCT = 1;
-
--- CALL ADD_NEW_PRODUCT('Medicines', 'Bandage', 'length', '50m');
--- UPDATE WAREHOUSE SET AMOUNT = 7 WHERE PRODUCT = 2;
-
--- CALL ADD_NEW_PRODUCT('Medicines', 'Amoxicillin Capsules', 'active substance', '500mg');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Amoxicillin Capsules', 'dosage form', 'capsule');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Amoxicillin Capsules', 'administration', 'oral');
--- UPDATE WAREHOUSE SET AMOUNT = 6 WHERE PRODUCT = 3;
-
--- CALL ADD_NEW_PRODUCT('Medicines', 'Ibuprofen Tablets', 'active substance', '200mg');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Ibuprofen Tablets', 'dosage form', 'tablet');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Ibuprofen Tablets', 'administration', 'oral');
--- UPDATE WAREHOUSE SET AMOUNT = 28 WHERE PRODUCT = 4;
-
--- CALL ADD_NEW_PRODUCT('Medicines', 'Tetanus Toxoid Vaccine', 'active substance', 'single dose');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Tetanus Toxoid Vaccine', 'dosage form', 'injection');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Tetanus Toxoid Vaccine', 'administration', 'intramuscular');
--- UPDATE WAREHOUSE SET AMOUNT = 95 WHERE PRODUCT = 5;
-
--- CALL ADD_NEW_PRODUCT('Medicines', 'Oral Rehydration Salts', 'active substance', 'sachet for 1 liter of solution');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Oral Rehydration Salts', 'dosage form', 'powder');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Oral Rehydration Salts', 'administration', 'oral solution');
--- UPDATE WAREHOUSE SET AMOUNT = 54 WHERE PRODUCT = 6;
-
--- CALL ADD_NEW_PRODUCT('Medicines', 'Peracetamol Tablets', 'active substance', '500mg');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Peracetamol Tablets', 'dosage form', 'tablet');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Peracetamol Tablets', 'administration', 'oral');
--- UPDATE WAREHOUSE SET AMOUNT = 19 WHERE PRODUCT = 7;
-
--- CALL ADD_NEW_PRODUCT('Medicines', 'Hydrocortisone Cream', 'active substance', '1%');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Hydrocortisone Cream', 'dosage form', 'cream');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Hydrocortisone Cream', 'administration', 'topical');
--- UPDATE WAREHOUSE SET AMOUNT = 92 WHERE PRODUCT = 8;
-
--- CALL ADD_NEW_PRODUCT('Medicines', 'Loperamide Capsules', 'active substance', '2mg');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Loperamide Capsules', 'dosage form', 'capsule');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Loperamide Capsules', 'administration', 'oral');
--- UPDATE WAREHOUSE SET AMOUNT = 59 WHERE PRODUCT = 9;
-
--- CALL ADD_NEW_PRODUCT('Medicines', 'Ciprofloxacin Tablets', 'active substance', '500mg');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Ciprofloxacin Tablets', 'dosage form', 'tablet');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Ciprofloxacin Tablets', 'administration', 'oral');
--- UPDATE WAREHOUSE SET AMOUNT = 29 WHERE PRODUCT = 10;
-
--- CALL ADD_NEW_PRODUCT('Medicines', 'Docycycline Capsules', 'active substance', '100mg');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Docycycline Capsules', 'dosage form', 'capsule');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Docycycline Capsules', 'administration', 'oral');
--- UPDATE WAREHOUSE SET AMOUNT = 45 WHERE PRODUCT = 11;
-
--- CALL ADD_NEW_PRODUCT('Medicines', 'Chlorhexidine Solution', 'active substance', '0.5% solution');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Chlorhexidine Solution', 'dosage form', 'solution');
--- CALL ADD_NEW_PRODUCT('Medicines', 'Chlorhexidine Solution', 'administration', 'topical');
--- UPDATE WAREHOUSE SET AMOUNT = 57 WHERE PRODUCT = 12;
+-- ADD CATEGORIES
 
 INSERT INTO CATEGORIES (CATEGORY_NAME)
 VALUES 
@@ -353,6 +404,7 @@ VALUES
     ('Food and Water Supplies'),
     ('Sanitation and Hygiene Supplies');
 
+-- ADD PRODUCTS
 INSERT INTO PRODUCTS (CATEGORY, PRODUCT_NAME, DISCONTINUED)
 VALUES
     -- First Aid Supplies
@@ -535,22 +587,7 @@ VALUES
     (24, 0);
 
 
--- -- ADD LOAD
--- INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (1, 5, '6945384502');
--- INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (5, 4, '6945384502');
--- INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (6, 9, '6945384502');
--- INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (7, 10, '6945384502');
-
--- INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (2, 1, '6925874523');
--- INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (4, 3, '6925874523');
--- INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (6, 5, '6925874523');
--- INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (8, 7, '6925874523');
--- INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (10, 9, '6925874523');
-
--- INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (5, 4, '6952486520');
--- INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (7, 6, '6952486520');
--- INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (9, 8, '6952486520');
--- INSERT INTO VAN_LOAD(product, amount, rescuer) VALUES (11, 10, '6952486520');
+-- ADD LOAD
 
 INSERT INTO VAN_LOAD(product, amount, rescuer) 
 VALUES
@@ -577,6 +614,8 @@ VALUES
         (22, 46, 6975384698),
         (7, 19, 6975384698),
         (6, 78, 6975384698);
+
+-- ADD ANNOUNCEMENTS
 
 INSERT INTO ANNOUNCEMENT(id, product, date)
 VALUES
@@ -1435,3 +1474,860 @@ VALUES
 	(150,  2, "2007-09-14 23:35:39"),
 	(150, 23, "2007-09-14 23:35:39"),
 	(150,  1, "2007-09-14 23:35:39");
+
+-- ADD OFFERS AND REQUESTS
+INSERT INTO UserOffersRequests(id, user, type, createdOn, status, assumedOn, assumedBy, completedOn)
+VALUES
+	( 1, '6942387456', 'request', '2007-12-26 22:41:52', 'inTransition', '2007-12-26 22:41:52', '6974106795', null), 
+	( 2, '6942387456', 'request', '2001-09-27 21:36:48', 'completed', '2006-01-08 12:01:07', '6945203357', '2016-05-28 03:27:26'), 
+	( 3, '6942387456', 'request', '2012-09-06 21:56:18', 'completed', '2017-07-06 05:49:11', '6975384698', '2001-09-20 19:10:46'), 
+	( 4, '6942387456', 'request', '2023-04-22 23:56:14', 'canceled', null, null, null), 
+	( 5, '6942387456', 'request', '2024-03-12 01:44:30', 'completed', '2009-05-15 20:00:50', '6972004599', '2017-06-19 10:57:15'), 
+	( 6, '6942387456', 'request', '2014-09-01 06:27:57', 'completed', '2019-11-09 13:53:36', '6942384507', '2011-12-25 03:19:29'), 
+	( 7, '6942387456', 'offer', '2003-09-14 21:36:33', 'completed', '2015-03-16 23:03:45', '6975384698', '2017-08-05 06:33:15'), 
+	( 8, '6942387456', 'request', '2012-02-26 22:15:21', 'canceled', null, null, null), 
+	( 9, '6942387456', 'offer', '2022-07-07 12:38:14', 'completed', '2001-08-04 08:41:44', '6952486520', '2011-07-18 00:11:19'), 
+	(10, '6942387456', 'offer', '2009-12-14 11:22:00', 'canceled', null, null, null), 
+	(11, '6942387456', 'request', '2020-04-11 01:34:28', 'completed', '2003-05-27 09:34:17', '6942384507', '2011-03-21 02:00:49'), 
+	(12, '6942387456', 'offer', '2021-12-31 03:03:31', 'completed', '2008-01-24 12:15:10', '6972004599', '2012-08-30 16:37:28'), 
+	(13, '6942387456', 'request', '2009-05-18 02:24:54', 'canceled', null, null, null), 
+	(14, '6942387456', 'offer', '2019-08-21 21:13:50', 'canceled', null, null, null), 
+	(15, '6942387456', 'request', '2000-05-28 02:07:04', 'completed', '2019-03-16 16:10:26', '6974106795', '2024-03-23 07:46:26'), 
+	(16, '6942387456', 'request', '2021-03-13 15:49:30', 'canceled', null, null, null), 
+	(17, '6942387456', 'request', '2023-01-15 19:21:19', 'canceled', null, null, null), 
+	(18, '6942387456', 'request', '2010-01-19 19:31:09', 'completed', '2024-08-20 06:17:37', '6925874523', '2016-12-28 11:20:47'), 
+	(19, '6942387456', 'offer', '2023-11-19 07:30:09', 'canceled', null, null, null), 
+	(20, '6942387456', 'offer', '2021-05-22 20:26:38', 'canceled', null, null, null), 
+	(21, '6942387456', 'offer', '2021-01-23 00:08:42', 'completed', '2024-07-19 13:36:26', '6952486520', '2021-09-26 23:11:22'), 
+	(22, '6942387456', 'request', '2002-08-07 19:18:11', 'canceled', null, null, null), 
+	(23, '6942387456', 'offer', '2007-07-13 05:34:20', 'completed', '2003-01-09 01:59:35', '6945203357', '2015-08-26 18:02:20'), 
+	(24, '6942387456', 'offer', '2007-05-30 06:56:01', 'canceled', null, null, null), 
+	(25, '6942387456', 'offer', '2008-02-26 22:18:22', 'canceled', null, null, null), 
+	(26, '6942387456', 'request', '2024-05-31 19:14:24', 'completed', '2023-06-09 07:26:33', '6945384502', '2015-01-20 08:06:56'), 
+	(27, '6942387456', 'request', '2000-01-02 04:43:17', 'canceled', null, null, null), 
+	(28, '6942387456', 'offer', '2010-11-01 01:05:49', 'canceled', null, null, null), 
+	(29, '6942387456', 'offer', '2012-09-29 02:45:38', 'canceled', null, null, null), 
+	(30, '6942387456', 'offer', '2006-07-22 07:02:14', 'completed', '2003-11-06 08:51:46', '6952486520', '2018-02-19 00:19:55'), 
+	(31, '6942387456', 'offer', '2011-11-26 07:55:09', 'canceled', null, null, null), 
+	(32, '6942387456', 'request', '2002-10-20 05:44:22', 'canceled', null, null, null), 
+	(33, '6942387456', 'request', '2018-09-17 19:02:09', 'canceled', null, null, null), 
+	(34, '6942387456', 'offer', '2005-11-12 03:26:24', 'canceled', null, null, null), 
+	(35, '6942387456', 'request', '2022-07-26 10:19:23', 'completed', '2010-12-30 06:04:36', '6972004599', '2005-11-07 08:37:49'), 
+	(36, '6942387456', 'request', '2006-02-05 18:17:17', 'canceled', null, null, null), 
+	(37, '6942387456', 'offer', '2012-01-01 19:26:03', 'canceled', null, null, null), 
+	(38, '6942387456', 'request', '2015-12-23 02:58:21', 'completed', '2012-12-07 19:17:45', '6952486520', '2022-11-19 20:43:27'), 
+	(39, '6942387456', 'offer', '2015-01-23 11:21:44', 'completed', '2019-07-05 16:14:23', '6942384507', '2004-08-27 13:49:18'), 
+	(40, '6942387456', 'offer', '2001-11-28 19:08:04', 'completed', '2019-03-14 09:13:26', '6952486520', '2016-12-14 02:40:06'), 
+	(41, '6942387456', 'request', '2018-11-19 17:04:51', 'completed', '2007-03-13 13:29:02', '6952486520', '2016-05-03 17:29:31'), 
+	(42, '6942387456', 'offer', '2020-11-12 20:49:56', 'canceled', null, null, null), 
+	(43, '6942387456', 'offer', '2010-10-18 15:57:51', 'canceled', null, null, null), 
+	(44, '6942387456', 'offer', '2018-12-27 05:54:14', 'completed', '2010-12-06 09:29:02', '6945203357', '2017-02-07 19:16:58'), 
+	(45, '6942387456', 'offer', '2019-03-11 00:43:33', 'completed', '2010-08-22 08:30:52', '6925874523', '2014-06-21 23:30:37'), 
+	(46, '6942387456', 'offer', '2014-12-15 19:35:44', 'completed', '2012-03-12 06:33:54', '6972004599', '2005-02-12 22:26:28'), 
+	(47, '6942387456', 'offer', '2012-12-28 20:47:09', 'completed', '2010-11-08 15:03:56', '6974106795', '2022-03-10 03:19:30'), 
+	(48, '6942387456', 'request', '2021-10-17 12:38:01', 'completed', '2016-02-22 18:20:28', '6925874523', '2013-06-08 15:25:53'), 
+	(49, '6942387456', 'request', '2022-08-13 02:22:21', 'canceled', null, null, null), 
+	(50, '6942387456', 'offer', '2018-05-02 08:51:14', 'canceled', null, null, null), 
+	(51, '6942387456', 'request', '2010-02-17 22:17:00', 'completed', '2002-08-10 17:23:17', '6945203357', '2006-02-01 04:35:22'), 
+	(52, '6952147620', 'offer', '2024-02-12 19:18:33', 'inTransition', '2024-02-12 19:18:33', '6942384507', null), 
+	(53, '6952147620', 'offer', '2022-03-03 08:30:30', 'completed', '2003-05-02 12:04:05', '6952486520', '2002-04-19 03:24:48'), 
+	(54, '6952147620', 'offer', '2000-02-27 18:36:21', 'canceled', null, null, null), 
+	(55, '6952147620', 'request', '2007-02-03 11:23:39', 'completed', '2013-12-26 09:02:29', '6975384698', '2020-06-10 09:00:50'), 
+	(56, '6952147620', 'offer', '2005-05-03 13:10:40', 'completed', '2021-12-11 03:29:59', '6972004599', '2020-11-15 03:00:41'), 
+	(57, '6952147620', 'request', '2021-12-03 09:13:45', 'canceled', null, null, null), 
+	(58, '6952147620', 'request', '2022-03-14 03:31:56', 'completed', '2013-10-20 22:16:28', '6925874523', '2009-08-05 10:39:50'), 
+	(59, '6952147620', 'request', '2004-01-13 11:36:00', 'completed', '2009-06-06 00:32:42', '6952486520', '2011-06-22 14:31:24'), 
+	(60, '6952147620', 'request', '2023-04-10 22:11:55', 'completed', '2000-10-21 05:00:51', '6975384698', '2014-09-17 02:47:31'), 
+	(61, '6952147620', 'offer', '2005-06-30 21:11:47', 'canceled', null, null, null), 
+	(62, '6952147620', 'request', '2004-12-10 10:57:10', 'canceled', null, null, null), 
+	(63, '6952147620', 'request', '2017-12-01 03:27:42', 'canceled', null, null, null), 
+	(64, '6952147620', 'offer', '2005-02-12 06:54:16', 'canceled', null, null, null), 
+	(65, '6952147620', 'offer', '2024-07-09 03:06:41', 'canceled', null, null, null), 
+	(66, '6952147620', 'offer', '2007-03-03 07:44:42', 'canceled', null, null, null), 
+	(67, '6952147620', 'offer', '2002-03-26 21:04:25', 'completed', '2020-04-17 10:01:00', '6975384698', '2010-11-20 12:33:11'), 
+	(68, '6952147620', 'request', '2011-04-26 23:13:50', 'canceled', null, null, null), 
+	(69, '6952147620', 'request', '2016-03-15 01:29:42', 'completed', '2018-12-07 16:48:40', '6925874523', '2017-02-27 12:48:13'), 
+	(70, '6952147620', 'request', '2011-09-21 18:49:39', 'completed', '2017-10-07 04:39:05', '6975384698', '2004-12-19 13:00:04'), 
+	(71, '6952147620', 'request', '2021-05-02 17:11:36', 'completed', '2020-10-19 00:01:21', '6925874523', '2013-10-05 02:56:30'), 
+	(72, '6952147620', 'request', '2008-01-02 21:14:10', 'completed', '2021-11-20 02:29:49', '6972004599', '2012-11-22 09:30:01'), 
+	(73, '6952147620', 'offer', '2014-05-26 14:53:23', 'canceled', null, null, null), 
+	(74, '6952147620', 'request', '2005-06-25 01:30:01', 'completed', '2011-02-06 03:26:49', '6942384507', '2006-07-22 17:44:47'), 
+	(75, '6952147620', 'request', '2015-09-24 22:08:24', 'canceled', null, null, null), 
+	(76, '6952147620', 'offer', '2010-11-06 18:13:51', 'completed', '2016-08-22 16:52:33', '6942384507', '2023-01-17 20:39:10'), 
+	(77, '6952147620', 'offer', '2023-12-08 06:15:58', 'completed', '2004-07-31 23:13:03', '6975384698', '2017-04-30 15:40:46'), 
+	(78, '6952147620', 'offer', '2002-11-24 22:05:58', 'completed', '2020-08-09 05:45:52', '6975384698', '2007-08-19 02:05:24'), 
+	(79, '6952147620', 'offer', '2015-06-27 14:11:15', 'completed', '2008-11-29 00:08:21', '6972004599', '2000-06-05 11:06:34'), 
+	(80, '6952147620', 'request', '2009-12-07 22:47:43', 'completed', '2011-02-28 16:28:17', '6925874523', '2003-07-31 00:21:39'), 
+	(81, '6952147620', 'request', '2007-05-31 08:34:36', 'completed', '2012-01-08 11:29:15', '6975384698', '2002-05-07 11:00:05'), 
+	(82, '6952147620', 'request', '2017-05-29 12:21:18', 'canceled', null, null, null), 
+	(83, '6952147620', 'request', '2020-10-06 09:05:35', 'canceled', null, null, null), 
+	(84, '6952147620', 'request', '2003-12-07 10:56:04', 'completed', '2020-09-07 14:19:20', '6945384502', '2022-11-10 14:21:35'), 
+	(85, '6952147620', 'offer', '2022-05-20 16:57:19', 'completed', '2002-05-25 16:50:55', '6945384502', '2002-01-07 03:59:15'), 
+	(86, '6952147620', 'offer', '2020-09-08 08:43:09', 'completed', '2021-10-19 09:50:27', '6945384502', '2022-07-31 18:41:37'), 
+	(87, '6952147620', 'request', '2023-06-08 23:26:09', 'canceled', null, null, null), 
+	(88, '6952147620', 'request', '2003-12-08 16:14:12', 'canceled', null, null, null), 
+	(89, '6952147620', 'offer', '2009-12-12 02:11:00', 'canceled', null, null, null), 
+	(90, '6952147620', 'offer', '2009-05-27 12:28:06', 'canceled', null, null, null), 
+	(91, '6952147620', 'request', '2005-04-10 23:27:13', 'completed', '2018-05-01 17:19:51', '6945384502', '2004-11-09 06:18:50'), 
+	(92, '6952147620', 'request', '2018-01-18 20:34:33', 'completed', '2010-10-04 16:53:57', '6945384502', '2011-06-27 01:03:03'), 
+	(93, '6952147620', 'offer', '2012-12-30 20:28:35', 'canceled', null, null, null), 
+	(94, '6952147620', 'request', '2015-05-30 05:05:38', 'canceled', null, null, null), 
+	(95, '6952147620', 'offer', '2018-12-03 17:06:11', 'canceled', null, null, null), 
+	(96, '6952147620', 'request', '2021-03-08 07:21:04', 'canceled', null, null, null), 
+	(97, '6952147620', 'offer', '2009-12-10 15:10:37', 'canceled', null, null, null), 
+	(98, '6952147620', 'offer', '2010-09-30 19:45:21', 'canceled', null, null, null), 
+	(99, '6952147620', 'offer', '2021-10-24 10:43:12', 'completed', '2016-03-15 04:26:46', '6974106795', '2020-01-21 03:25:04'), 
+	(100, '6952147620', 'request', '2000-02-01 12:36:30', 'canceled', null, null, null), 
+	(101, '6952147620', 'request', '2023-07-28 13:59:16', 'canceled', null, null, null), 
+	(102, '6952147620', 'offer', '2015-10-24 17:11:27', 'completed', '2019-01-25 01:45:35', '6945203357', '2001-01-02 10:17:40'), 
+	(103, '6972148630', 'request', '2006-11-13 14:05:31', 'created', null, null, null), 
+	(104, '6972148630', 'offer', '2009-09-22 06:04:18', 'completed', '2020-02-04 17:27:46', '6974106795', '2009-11-10 21:50:32'), 
+	(105, '6972148630', 'offer', '2004-03-19 03:24:19', 'canceled', null, null, null), 
+	(106, '6972148630', 'offer', '2015-07-24 22:03:00', 'canceled', null, null, null), 
+	(107, '6972148630', 'request', '2002-08-20 01:32:59', 'completed', '2019-07-24 08:48:03', '6945203357', '2018-10-07 08:19:59'), 
+	(108, '6972148630', 'offer', '2001-04-30 02:49:45', 'canceled', null, null, null), 
+	(109, '6972148630', 'offer', '2013-02-07 15:37:12', 'completed', '2010-09-07 18:08:50', '6925874523', '2002-12-27 15:54:47'), 
+	(110, '6972148630', 'request', '2023-10-16 04:15:27', 'completed', '2024-02-23 00:42:28', '6952486520', '2015-10-10 14:08:03'), 
+	(111, '6972148630', 'request', '2019-06-30 15:21:35', 'completed', '2016-09-08 17:49:46', '6945203357', '2014-11-22 23:21:57'), 
+	(112, '6972148630', 'offer', '2022-12-24 12:36:30', 'completed', '2010-10-02 02:05:50', '6972004599', '2012-06-30 02:07:32'), 
+	(113, '6972148630', 'request', '2024-07-25 00:05:28', 'canceled', null, null, null), 
+	(114, '6972148630', 'request', '2017-04-24 00:30:14', 'canceled', null, null, null), 
+	(115, '6972148630', 'request', '2007-04-29 04:37:42', 'completed', '2005-12-18 04:58:14', '6945203357', '2005-10-26 03:09:49'), 
+	(116, '6972148630', 'offer', '2001-05-24 03:30:49', 'completed', '2015-09-06 03:36:51', '6925874523', '2001-08-16 09:56:30'), 
+	(117, '6972148630', 'request', '2005-09-22 08:22:20', 'completed', '2014-06-30 18:45:48', '6974106795', '2010-08-10 06:43:09'), 
+	(118, '6972148630', 'offer', '2017-10-02 15:11:20', 'completed', '2021-05-16 16:08:26', '6945203357', '2001-10-07 14:52:40'), 
+	(119, '6972148630', 'request', '2020-02-01 14:44:10', 'canceled', null, null, null), 
+	(120, '6972148630', 'request', '2021-03-12 14:26:16', 'completed', '2008-11-08 15:01:10', '6945384502', '2023-09-02 06:13:34'), 
+	(121, '6972148630', 'request', '2022-04-05 06:36:31', 'completed', '2012-12-31 11:13:09', '6925874523', '2015-10-12 01:25:37'), 
+	(122, '6972148630', 'request', '2008-01-26 06:17:56', 'completed', '2019-09-03 19:47:04', '6972004599', '2009-06-13 06:22:27'), 
+	(123, '6972148630', 'request', '2000-04-08 17:33:43', 'completed', '2006-02-10 22:20:55', '6945203357', '2004-09-03 16:44:49'), 
+	(124, '6972148630', 'offer', '2018-10-19 12:14:09', 'canceled', null, null, null), 
+	(125, '6972148630', 'offer', '2007-04-10 05:38:59', 'canceled', null, null, null), 
+	(126, '6972148630', 'request', '2016-06-15 05:54:20', 'canceled', null, null, null), 
+	(127, '6972148630', 'offer', '2000-10-23 05:13:00', 'canceled', null, null, null), 
+	(128, '6972148630', 'request', '2009-06-20 14:53:34', 'completed', '2012-12-20 11:02:14', '6975384698', '2005-04-14 19:41:20'), 
+	(129, '6972148630', 'request', '2010-08-18 07:13:27', 'canceled', null, null, null), 
+	(130, '6972148630', 'offer', '2017-10-12 02:08:22', 'completed', '2018-11-17 08:18:13', '6945203357', '2019-10-01 21:29:51'), 
+	(131, '6972148630', 'request', '2024-02-19 08:46:42', 'canceled', null, null, null), 
+	(132, '6972148630', 'request', '2014-03-25 11:29:50', 'canceled', null, null, null), 
+	(133, '6972148630', 'request', '2024-04-11 08:38:23', 'canceled', null, null, null), 
+	(134, '6972148630', 'request', '2015-06-15 05:21:41', 'completed', '2004-07-20 09:34:28', '6925874523', '2015-05-04 12:09:11'), 
+	(135, '6972148630', 'request', '2015-01-10 14:57:10', 'completed', '2024-04-27 03:37:22', '6972004599', '2003-07-14 22:53:09'), 
+	(136, '6972148630', 'offer', '2004-11-08 06:22:07', 'completed', '2022-06-08 00:53:14', '6974106795', '2012-03-15 04:17:19'), 
+	(137, '6972148630', 'request', '2015-04-21 23:54:07', 'canceled', null, null, null), 
+	(138, '6972148630', 'request', '2007-11-05 12:57:58', 'completed', '2004-06-16 16:44:55', '6945384502', '2019-08-08 22:47:35'), 
+	(139, '6972148630', 'offer', '2000-05-03 20:19:37', 'canceled', null, null, null), 
+	(140, '6972148630', 'offer', '2017-08-02 16:13:44', 'canceled', null, null, null), 
+	(141, '6972148630', 'offer', '2004-02-13 15:02:02', 'completed', '2008-03-11 13:39:08', '6945384502', '2018-09-02 07:44:20'), 
+	(142, '6972148630', 'offer', '2022-11-12 17:33:24', 'canceled', null, null, null), 
+	(143, '6972148630', 'offer', '2002-04-13 02:13:42', 'completed', '2002-01-15 05:34:46', '6945203357', '2006-07-31 07:47:43'), 
+	(144, '6972148630', 'request', '2018-05-15 16:03:42', 'canceled', null, null, null), 
+	(145, '6972148630', 'offer', '2000-06-09 13:02:24', 'completed', '2024-03-27 17:30:01', '6952486520', '2018-06-08 09:50:06'), 
+	(146, '6972148630', 'request', '2000-06-02 18:53:57', 'completed', '2008-05-14 22:36:41', '6972004599', '2003-03-10 21:20:57'), 
+	(147, '6972148630', 'offer', '2004-11-12 19:08:09', 'canceled', null, null, null), 
+	(148, '6972148630', 'request', '2010-08-06 04:18:17', 'canceled', null, null, null), 
+	(149, '6972148630', 'offer', '2006-10-28 12:30:25', 'completed', '2024-03-08 10:56:46', '6972004599', '2006-10-15 13:50:39'), 
+	(150, '6972148630', 'request', '2010-10-26 04:57:49', 'canceled', null, null, null), 
+	(151, '6972148630', 'request', '2010-12-03 15:04:50', 'completed', '2009-04-04 06:52:47', '6945384502', '2018-04-04 09:48:32'), 
+	(152, '6972148630', 'offer', '2012-09-30 04:31:05', 'completed', '2013-09-19 01:01:47', '6945203357', '2000-07-15 05:00:54'), 
+	(153, '6972148630', 'request', '2002-02-08 08:17:12', 'completed', '2011-03-11 04:23:38', '6952486520', '2000-09-18 16:48:38'), 
+	(154, '6979531485', 'request', '2004-08-23 03:14:21', 'created', null, null, null), 
+	(155, '6979531485', 'request', '2019-02-28 03:58:09', 'completed', '2006-06-24 15:15:13', '6945203357', '2021-03-26 09:22:41'), 
+	(156, '6979531485', 'request', '2000-10-01 17:04:50', 'completed', '2010-10-07 02:37:59', '6974106795', '2013-08-09 23:21:16'), 
+	(157, '6979531485', 'request', '2023-11-19 16:18:53', 'canceled', null, null, null), 
+	(158, '6979531485', 'request', '2011-09-03 14:07:24', 'canceled', null, null, null), 
+	(159, '6979531485', 'offer', '2009-05-31 23:57:16', 'completed', '2001-11-29 11:29:45', '6942384507', '2011-03-20 06:37:43'), 
+	(160, '6979531485', 'request', '2009-12-20 16:21:06', 'completed', '2013-12-22 18:36:46', '6925874523', '2007-06-08 03:51:24'), 
+	(161, '6979531485', 'offer', '2004-08-16 20:10:02', 'canceled', null, null, null), 
+	(162, '6979531485', 'request', '2024-08-13 05:22:03', 'canceled', null, null, null), 
+	(163, '6979531485', 'request', '2021-04-18 06:58:49', 'completed', '2000-09-18 09:09:48', '6975384698', '2000-02-27 21:59:23'), 
+	(164, '6979531485', 'request', '2020-02-24 12:32:04', 'completed', '2009-01-27 23:15:32', '6945384502', '2012-07-08 07:46:50'), 
+	(165, '6979531485', 'offer', '2012-12-30 06:25:20', 'canceled', null, null, null), 
+	(166, '6979531485', 'offer', '2008-05-02 01:49:52', 'completed', '2015-09-29 22:41:49', '6975384698', '2005-11-11 10:17:21'), 
+	(167, '6979531485', 'offer', '2002-07-09 07:20:44', 'canceled', null, null, null), 
+	(168, '6979531485', 'request', '2016-07-04 01:13:12', 'canceled', null, null, null), 
+	(169, '6979531485', 'offer', '2012-06-23 01:13:36', 'canceled', null, null, null), 
+	(170, '6979531485', 'request', '2009-08-09 17:14:02', 'completed', '2003-02-12 12:39:45', '6975384698', '2023-03-17 13:06:17'), 
+	(171, '6979531485', 'offer', '2011-03-08 08:24:07', 'canceled', null, null, null), 
+	(172, '6979531485', 'offer', '2022-11-28 00:54:43', 'completed', '2020-12-23 02:42:00', '6952486520', '2014-06-16 06:45:19'), 
+	(173, '6979531485', 'offer', '2020-06-11 18:54:02', 'completed', '2007-01-23 02:05:43', '6925874523', '2021-04-05 09:40:31'), 
+	(174, '6979531485', 'request', '2018-08-28 22:12:17', 'canceled', null, null, null), 
+	(175, '6979531485', 'request', '2023-11-01 06:41:21', 'completed', '2021-01-20 00:17:12', '6945384502', '2018-04-18 00:19:56'), 
+	(176, '6979531485', 'request', '2008-03-06 04:23:31', 'completed', '2009-03-24 09:57:15', '6945203357', '2001-03-28 10:46:45'), 
+	(177, '6979531485', 'offer', '2024-03-25 22:42:00', 'completed', '2006-12-02 13:32:59', '6974106795', '2020-06-07 03:31:21'), 
+	(178, '6979531485', 'request', '2017-09-11 12:07:34', 'canceled', null, null, null), 
+	(179, '6979531485', 'offer', '2005-07-26 01:45:31', 'canceled', null, null, null), 
+	(180, '6979531485', 'request', '2003-11-10 13:40:46', 'canceled', null, null, null), 
+	(181, '6979531485', 'offer', '2003-10-24 09:55:55', 'completed', '2018-03-09 15:21:34', '6945203357', '2005-01-28 15:50:40'), 
+	(182, '6979531485', 'offer', '2008-03-29 09:57:55', 'completed', '2016-12-10 23:11:44', '6952486520', '2005-07-28 11:09:50'), 
+	(183, '6979531485', 'offer', '2013-03-15 20:45:22', 'canceled', null, null, null), 
+	(184, '6979531485', 'request', '2010-07-30 02:31:33', 'canceled', null, null, null), 
+	(185, '6979531485', 'offer', '2003-11-02 05:35:46', 'canceled', null, null, null), 
+	(186, '6979531485', 'offer', '2019-06-27 04:19:36', 'canceled', null, null, null), 
+	(187, '6979531485', 'offer', '2014-12-15 17:35:33', 'canceled', null, null, null), 
+	(188, '6979531485', 'offer', '2003-02-21 12:26:46', 'canceled', null, null, null), 
+	(189, '6979531485', 'offer', '2005-04-26 21:37:56', 'completed', '2021-06-20 07:56:39', '6945203357', '2005-02-27 16:36:04'), 
+	(190, '6979531485', 'offer', '2007-02-27 08:07:03', 'completed', '2015-02-02 19:09:08', '6975384698', '2016-07-27 00:20:03'), 
+	(191, '6979531485', 'offer', '2003-07-28 22:20:06', 'completed', '2017-02-24 01:05:13', '6925874523', '2023-04-17 02:00:24'), 
+	(192, '6979531485', 'offer', '2017-05-12 14:31:05', 'canceled', null, null, null), 
+	(193, '6979531485', 'offer', '2011-11-13 05:47:43', 'canceled', null, null, null), 
+	(194, '6979531485', 'request', '2012-10-28 18:03:53', 'completed', '2005-03-02 05:41:56', '6974106795', '2002-09-20 04:44:04'), 
+	(195, '6979531485', 'request', '2016-10-21 06:28:32', 'canceled', null, null, null), 
+	(196, '6979531485', 'offer', '2014-07-16 18:09:12', 'canceled', null, null, null), 
+	(197, '6979531485', 'request', '2006-09-04 09:40:12', 'completed', '2002-02-16 10:21:25', '6942384507', '2005-02-17 15:27:36'), 
+	(198, '6979531485', 'offer', '2014-10-30 09:11:35', 'completed', '2014-02-14 19:18:04', '6925874523', '2011-06-10 15:07:10'), 
+	(199, '6979531485', 'offer', '2009-03-20 18:58:04', 'canceled', null, null, null), 
+	(200, '6979531485', 'offer', '2007-08-09 13:02:43', 'canceled', null, null, null), 
+	(201, '6979531485', 'request', '2007-09-10 09:58:05', 'completed', '2024-02-17 01:46:01', '6925874523', '2004-11-23 22:12:34'), 
+	(202, '6979531485', 'request', '2003-07-11 09:22:52', 'completed', '2014-10-10 13:19:45', '6925874523', '2011-01-25 02:25:19'), 
+	(203, '6979531485', 'offer', '2021-02-06 07:21:01', 'canceled', null, null, null), 
+	(204, '6979531485', 'offer', '2022-12-21 05:34:00', 'completed', '2022-05-03 14:41:51', '6942384507', '2006-08-07 16:14:43'), 
+	(205, '6985247630', 'offer', '2017-12-30 08:23:46', 'inTransition', '2017-12-30 08:23:46', '6945384502', null), 
+	(206, '6985247630', 'offer', '2003-07-14 11:00:09', 'canceled', null, null, null), 
+	(207, '6985247630', 'request', '2014-05-12 01:05:50', 'completed', '2016-06-27 07:08:38', '6952486520', '2001-08-15 00:43:06'), 
+	(208, '6985247630', 'offer', '2012-09-09 04:45:03', 'canceled', null, null, null), 
+	(209, '6985247630', 'request', '2012-07-31 05:19:37', 'completed', '2017-01-03 14:04:19', '6945203357', '2000-10-23 05:29:48'), 
+	(210, '6985247630', 'request', '2008-03-31 16:03:57', 'completed', '2007-01-18 21:20:48', '6974106795', '2013-05-24 01:48:54'), 
+	(211, '6985247630', 'request', '2017-06-08 04:47:30', 'completed', '2004-02-07 11:22:20', '6975384698', '2023-08-04 08:47:03'), 
+	(212, '6985247630', 'offer', '2006-11-07 00:13:45', 'canceled', null, null, null), 
+	(213, '6985247630', 'offer', '2005-04-10 19:37:24', 'canceled', null, null, null), 
+	(214, '6985247630', 'request', '2022-07-01 01:37:37', 'canceled', null, null, null), 
+	(215, '6985247630', 'request', '2014-09-05 06:29:30', 'completed', '2011-10-30 11:45:17', '6945203357', '2001-07-25 02:53:24'), 
+	(216, '6985247630', 'offer', '2006-08-04 03:46:51', 'completed', '2008-04-06 22:31:16', '6952486520', '2003-07-23 09:00:00'), 
+	(217, '6985247630', 'request', '2022-09-29 03:45:28', 'canceled', null, null, null), 
+	(218, '6985247630', 'offer', '2000-09-11 20:26:06', 'completed', '2001-09-27 03:41:55', '6942384507', '2023-10-03 14:40:49'), 
+	(219, '6985247630', 'offer', '2022-07-25 22:37:05', 'completed', '2009-07-19 03:02:55', '6952486520', '2008-06-12 20:23:35'), 
+	(220, '6985247630', 'offer', '2007-11-11 12:27:59', 'canceled', null, null, null), 
+	(221, '6985247630', 'offer', '2000-04-22 16:37:41', 'completed', '2022-05-26 22:02:24', '6945203357', '2005-10-19 08:46:51'), 
+	(222, '6985247630', 'request', '2021-05-13 06:20:39', 'canceled', null, null, null), 
+	(223, '6985247630', 'request', '2019-12-09 07:28:54', 'canceled', null, null, null), 
+	(224, '6985247630', 'offer', '2004-10-23 05:12:43', 'completed', '2006-11-06 18:19:06', '6952486520', '2022-11-25 20:08:57'), 
+	(225, '6985247630', 'request', '2016-09-10 04:02:26', 'canceled', null, null, null), 
+	(226, '6985247630', 'request', '2009-06-25 00:12:35', 'canceled', null, null, null), 
+	(227, '6985247630', 'request', '2015-10-12 08:39:56', 'canceled', null, null, null), 
+	(228, '6985247630', 'request', '2013-04-18 01:01:41', 'canceled', null, null, null), 
+	(229, '6985247630', 'offer', '2016-01-04 02:23:10', 'canceled', null, null, null), 
+	(230, '6985247630', 'offer', '2005-11-20 19:28:22', 'completed', '2022-02-02 10:39:31', '6974106795', '2023-05-26 03:13:06'), 
+	(231, '6985247630', 'offer', '2014-05-27 00:12:37', 'canceled', null, null, null), 
+	(232, '6985247630', 'offer', '2016-12-09 08:16:05', 'completed', '2009-11-03 10:33:22', '6925874523', '2022-07-21 05:07:21'), 
+	(233, '6985247630', 'offer', '2002-05-12 07:05:00', 'completed', '2005-07-21 04:47:46', '6974106795', '2023-12-30 23:50:59'), 
+	(234, '6985247630', 'offer', '2017-10-17 00:16:20', 'completed', '2009-07-12 13:53:48', '6972004599', '2014-12-20 10:35:19'), 
+	(235, '6985247630', 'offer', '2011-10-24 07:01:25', 'canceled', null, null, null), 
+	(236, '6985247630', 'offer', '2015-09-20 20:55:17', 'completed', '2010-01-14 11:08:15', '6942384507', '2019-12-30 16:02:42'), 
+	(237, '6985247630', 'request', '2013-07-09 03:53:29', 'canceled', null, null, null), 
+	(238, '6985247630', 'request', '2012-08-18 04:50:57', 'completed', '2000-02-28 08:33:42', '6952486520', '2017-02-19 02:16:28'), 
+	(239, '6985247630', 'offer', '2004-09-15 15:30:10', 'canceled', null, null, null), 
+	(240, '6985247630', 'offer', '2023-06-15 02:39:46', 'completed', '2002-11-21 04:09:45', '6974106795', '2018-10-08 00:30:34'), 
+	(241, '6985247630', 'request', '2005-10-03 09:44:02', 'completed', '2005-04-07 14:35:13', '6975384698', '2009-09-07 20:28:06'), 
+	(242, '6985247630', 'request', '2002-11-08 18:22:59', 'completed', '2011-08-28 22:34:39', '6972004599', '2008-04-14 03:45:04'), 
+	(243, '6985247630', 'request', '2013-04-17 09:27:50', 'canceled', null, null, null), 
+	(244, '6985247630', 'offer', '2023-03-30 18:12:04', 'completed', '2002-10-02 20:00:02', '6972004599', '2009-08-13 02:36:27'), 
+	(245, '6985247630', 'offer', '2010-01-25 04:42:18', 'completed', '2013-10-16 03:50:07', '6942384507', '2002-06-19 20:57:52'), 
+	(246, '6985247630', 'request', '2012-03-26 18:45:14', 'canceled', null, null, null), 
+	(247, '6985247630', 'request', '2017-11-29 10:55:32', 'canceled', null, null, null), 
+	(248, '6985247630', 'request', '2012-10-09 19:37:04', 'canceled', null, null, null), 
+	(249, '6985247630', 'offer', '2010-05-17 16:34:04', 'completed', '2019-03-01 16:15:18', '6974106795', '2010-09-07 20:19:49'), 
+	(250, '6985247630', 'offer', '2002-10-10 16:38:04', 'completed', '2002-02-09 13:52:36', '6942384507', '2019-02-06 14:04:14'), 
+	(251, '6985247630', 'offer', '2007-12-04 18:08:02', 'canceled', null, null, null), 
+	(252, '6985247630', 'request', '2003-09-30 09:31:26', 'completed', '2022-05-24 19:50:24', '6972004599', '2004-10-16 00:21:48'), 
+	(253, '6985247630', 'request', '2001-05-14 12:05:13', 'completed', '2006-10-09 22:53:44', '6972004599', '2010-07-29 15:18:45'), 
+	(254, '6985247630', 'offer', '2023-04-21 14:45:06', 'completed', '2008-02-23 22:01:31', '6942384507', '2004-10-23 00:57:16'), 
+	(255, '6985247630', 'request', '2004-02-14 11:19:18', 'completed', '2008-08-23 16:18:47', '6974106795', '2021-02-25 09:03:09'), 
+	(256, '6985357420', 'request', '2009-12-23 20:12:58', 'inTransition', '2009-12-23 20:12:58', '6942384507', null), 
+	(257, '6985357420', 'request', '2006-08-18 22:40:04', 'canceled', null, null, null), 
+	(258, '6985357420', 'request', '2020-03-02 10:08:12', 'canceled', null, null, null), 
+	(259, '6985357420', 'request', '2017-10-02 19:37:04', 'completed', '2016-07-24 03:12:36', '6942384507', '2002-07-11 01:15:02'), 
+	(260, '6985357420', 'offer', '2008-07-26 16:29:49', 'completed', '2015-07-29 07:39:21', '6952486520', '2006-07-18 20:04:14'), 
+	(261, '6985357420', 'offer', '2014-09-30 20:16:11', 'completed', '2021-06-09 08:58:07', '6952486520', '2021-06-05 04:17:53'), 
+	(262, '6985357420', 'request', '2001-09-26 21:46:40', 'canceled', null, null, null), 
+	(263, '6985357420', 'request', '2023-10-03 10:45:28', 'canceled', null, null, null), 
+	(264, '6985357420', 'offer', '2014-04-27 11:43:03', 'canceled', null, null, null), 
+	(265, '6985357420', 'request', '2020-07-08 16:38:02', 'completed', '2019-01-11 01:03:09', '6942384507', '2009-03-15 18:37:57'), 
+	(266, '6985357420', 'offer', '2004-01-23 11:09:18', 'canceled', null, null, null), 
+	(267, '6985357420', 'request', '2006-05-22 00:49:06', 'completed', '2009-08-06 22:20:54', '6974106795', '2020-04-30 12:13:04'), 
+	(268, '6985357420', 'offer', '2015-09-14 08:48:46', 'completed', '2005-12-03 09:28:40', '6925874523', '2013-04-24 14:43:22'), 
+	(269, '6985357420', 'request', '2013-11-04 00:24:19', 'completed', '2008-09-16 03:36:46', '6925874523', '2002-01-23 09:16:20'), 
+	(270, '6985357420', 'offer', '2020-01-11 07:33:08', 'completed', '2021-04-24 03:09:25', '6945203357', '2004-12-27 06:09:28'), 
+	(271, '6985357420', 'request', '2017-08-19 08:39:29', 'completed', '2019-09-24 19:56:16', '6945203357', '2003-06-29 03:17:23'), 
+	(272, '6985357420', 'offer', '2011-02-08 03:23:50', 'canceled', null, null, null), 
+	(273, '6985357420', 'request', '2014-02-16 08:19:57', 'canceled', null, null, null), 
+	(274, '6985357420', 'request', '2019-03-30 13:46:36', 'canceled', null, null, null), 
+	(275, '6985357420', 'offer', '2000-01-21 12:06:30', 'canceled', null, null, null), 
+	(276, '6985357420', 'request', '2003-02-25 11:36:46', 'completed', '2010-08-01 12:40:36', '6925874523', '2011-08-28 06:45:41'), 
+	(277, '6985357420', 'request', '2002-12-20 13:20:09', 'canceled', null, null, null), 
+	(278, '6985357420', 'offer', '2022-07-28 20:34:02', 'completed', '2003-05-01 05:12:47', '6952486520', '2005-01-24 02:45:44'), 
+	(279, '6985357420', 'offer', '2013-08-11 19:30:03', 'canceled', null, null, null), 
+	(280, '6985357420', 'offer', '2021-11-26 19:58:07', 'completed', '2012-03-12 23:46:22', '6972004599', '2012-01-20 00:47:28'), 
+	(281, '6985357420', 'request', '2001-10-07 12:57:43', 'completed', '2011-12-16 02:23:49', '6925874523', '2021-05-22 23:44:23'), 
+	(282, '6985357420', 'offer', '2009-01-19 15:23:32', 'canceled', null, null, null), 
+	(283, '6985357420', 'offer', '2007-07-24 19:55:42', 'completed', '2007-03-27 10:58:21', '6952486520', '2020-05-03 18:46:41'), 
+	(284, '6985357420', 'request', '2010-07-17 03:54:43', 'completed', '2021-08-22 03:56:30', '6952486520', '2016-09-28 00:58:58'), 
+	(285, '6985357420', 'offer', '2022-10-01 00:46:11', 'canceled', null, null, null), 
+	(286, '6985357420', 'offer', '2013-01-06 03:06:17', 'completed', '2021-10-05 17:53:50', '6942384507', '2011-04-01 13:26:48'), 
+	(287, '6985357420', 'request', '2021-12-28 20:35:25', 'canceled', null, null, null), 
+	(288, '6985357420', 'request', '2016-04-29 06:12:53', 'canceled', null, null, null), 
+	(289, '6985357420', 'offer', '2011-09-10 18:00:35', 'canceled', null, null, null), 
+	(290, '6985357420', 'offer', '2021-07-03 17:53:50', 'completed', '2011-11-18 15:04:18', '6945384502', '2022-05-06 12:46:58'), 
+	(291, '6985357420', 'request', '2003-09-05 00:56:23', 'canceled', null, null, null), 
+	(292, '6985357420', 'offer', '2018-05-29 13:15:04', 'canceled', null, null, null), 
+	(293, '6985357420', 'request', '2021-10-31 21:51:10', 'canceled', null, null, null), 
+	(294, '6985357420', 'offer', '2023-06-23 00:40:36', 'completed', '2014-12-13 05:26:33', '6942384507', '2010-02-13 23:50:16'), 
+	(295, '6985357420', 'offer', '2002-08-12 17:53:31', 'canceled', null, null, null), 
+	(296, '6985357420', 'offer', '2023-05-29 17:33:00', 'completed', '2007-05-29 11:38:34', '6925874523', '2016-06-27 09:48:59'), 
+	(297, '6985357420', 'offer', '2011-03-19 11:49:00', 'completed', '2020-03-07 22:13:53', '6925874523', '2016-12-26 00:15:46'), 
+	(298, '6985357420', 'offer', '2002-05-13 01:30:00', 'canceled', null, null, null), 
+	(299, '6985357420', 'request', '2001-04-25 10:26:20', 'canceled', null, null, null), 
+	(300, '6985357420', 'request', '2004-06-22 10:20:28', 'canceled', null, null, null), 
+	(301, '6985357420', 'request', '2009-12-31 02:14:21', 'canceled', null, null, null), 
+	(302, '6985357420', 'request', '2015-05-06 04:18:26', 'canceled', null, null, null), 
+	(303, '6985357420', 'request', '2007-06-15 23:26:44', 'canceled', null, null, null), 
+	(304, '6985357420', 'offer', '2016-09-05 22:02:42', 'canceled', null, null, null), 
+	(305, '6985357420', 'offer', '2004-10-19 18:38:21', 'canceled', null, null, null), 
+	(306, '6985357420', 'offer', '2003-01-23 06:18:53', 'canceled', null, null, null);
+
+INSERT INTO ProductsOffersRequests(offerId, product, amount)
+VALUES
+	( 1,  8, 1), 
+	( 2,  8, 2), 
+	( 3,  7, 3), 
+	( 4,  8, 4), 
+	( 5,  1, 1), 
+	( 6, 18, 3), 
+	( 7,  7, 1), 
+	( 7, 17, 6), 
+	( 7, 16, 1), 
+	( 7,  8, 3), 
+	( 8,  3, 4), 
+	( 9,  2, 6), 
+	( 9,  1, 4), 
+	(10, 20, 4), 
+	(10, 18, 2), 
+	(11,  8, 1), 
+	(12,  9, 1), 
+	(12,  3, 4), 
+	(12, 22, 1), 
+	(12, 14, 6), 
+	(13,  3, 6), 
+	(14, 12, 5), 
+	(15,  6, 6), 
+	(16,  6, 6), 
+	(17,  1, 2), 
+	(18, 22, 4), 
+	(19,  2, 4), 
+	(19, 23, 4), 
+	(20, 11, 6), 
+	(21, 17, 3), 
+	(22,  6, 5), 
+	(23, 23, 6), 
+	(23, 17, 5), 
+	(24, 16, 6), 
+	(25,  2, 4), 
+	(25,  3, 1), 
+	(25, 14, 5), 
+	(26, 21, 3), 
+	(27, 17, 4), 
+	(28, 15, 5), 
+	(28, 12, 1), 
+	(29, 17, 3), 
+	(29,  8, 4), 
+	(30, 18, 3), 
+	(30, 16, 1), 
+	(31, 15, 2), 
+	(31, 21, 2), 
+	(32, 16, 1), 
+	(33, 23, 4), 
+	(34, 15, 1), 
+	(35, 15, 1), 
+	(36,  1, 1), 
+	(37, 23, 6), 
+	(37, 21, 2), 
+	(37,  2, 5), 
+	(37,  3, 1), 
+	(38,  9, 4), 
+	(39,  3, 5), 
+	(39, 23, 1), 
+	(39, 18, 5), 
+	(40, 18, 5), 
+	(41, 15, 6), 
+	(42, 14, 1), 
+	(42,  1, 1), 
+	(43,  1, 5), 
+	(43,  6, 3), 
+	(44, 20, 5), 
+	(44, 21, 6), 
+	(44, 14, 6), 
+	(44, 22, 2), 
+	(45, 12, 3), 
+	(45, 21, 6), 
+	(45,  2, 1), 
+	(46, 16, 2), 
+	(46,  6, 5), 
+	(47, 22, 3), 
+	(48, 14, 6), 
+	(49, 18, 3), 
+	(50, 21, 6), 
+	(50, 12, 6), 
+	(50,  1, 5), 
+	(50,  6, 2), 
+	(51, 11, 3), 
+	(52, 14, 5), 
+	(52, 18, 4), 
+	(52, 17, 1), 
+	(52,  3, 5), 
+	(53,  6, 1), 
+	(53, 12, 3), 
+	(53,  1, 6), 
+	(54, 12, 4), 
+	(55, 18, 4), 
+	(56, 22, 3), 
+	(56, 16, 6), 
+	(56,  7, 2), 
+	(56,  9, 2), 
+	(57,  1, 2), 
+	(58, 17, 4), 
+	(59,  3, 2), 
+	(60, 12, 4), 
+	(61, 18, 6), 
+	(61,  6, 4), 
+	(61, 21, 1), 
+	(61, 15, 2), 
+	(62, 15, 2), 
+	(63,  6, 3), 
+	(64,  2, 1), 
+	(65, 11, 1), 
+	(65,  1, 1), 
+	(66, 14, 1), 
+	(66, 18, 2), 
+	(67, 23, 1), 
+	(67,  3, 1), 
+	(67, 14, 5), 
+	(68,  3, 4), 
+	(69, 21, 5), 
+	(70,  8, 3), 
+	(71,  1, 5), 
+	(72,  3, 4), 
+	(73, 17, 2), 
+	(74, 11, 2), 
+	(75, 16, 5), 
+	(76, 23, 1), 
+	(76,  3, 3), 
+	(76,  6, 2), 
+	(77, 12, 5), 
+	(77, 15, 4), 
+	(77, 18, 5), 
+	(78, 23, 2), 
+	(79,  7, 5), 
+	(79, 23, 2), 
+	(79,  3, 1), 
+	(79,  8, 4), 
+	(80, 17, 4), 
+	(81, 12, 2), 
+	(82,  3, 3), 
+	(83, 18, 6), 
+	(84, 16, 2), 
+	(85, 11, 6), 
+	(85,  8, 1), 
+	(86,  2, 3), 
+	(86, 18, 3), 
+	(86,  1, 1), 
+	(87,  1, 1), 
+	(88, 12, 3), 
+	(89, 20, 2), 
+	(89, 18, 2), 
+	(90,  2, 6), 
+	(90, 21, 5), 
+	(91,  7, 3), 
+	(92,  8, 3), 
+	(93, 18, 4), 
+	(93,  6, 5), 
+	(94, 20, 3), 
+	(95,  8, 2), 
+	(95, 23, 3), 
+	(96, 15, 2), 
+	(97,  3, 2), 
+	(97, 20, 1), 
+	(97,  9, 2), 
+	(97, 11, 2), 
+	(98, 23, 2), 
+	(98, 12, 5), 
+	(99, 12, 5), 
+	(99,  9, 2), 
+	(100,  2, 1), 
+	(101, 22, 3), 
+	(102, 16, 4), 
+	(103,  7, 6), 
+	(104,  1, 1), 
+	(105,  1, 2), 
+	(105, 20, 5), 
+	(106, 17, 3), 
+	(107, 23, 6), 
+	(108, 20, 6), 
+	(108,  7, 1), 
+	(108,  3, 4), 
+	(108,  2, 3), 
+	(109,  6, 6), 
+	(109, 17, 5), 
+	(109,  1, 2), 
+	(109, 18, 1), 
+	(110, 21, 3), 
+	(111, 17, 4), 
+	(112, 15, 3), 
+	(112, 18, 5), 
+	(113,  3, 5), 
+	(114,  1, 5), 
+	(115, 14, 4), 
+	(116,  3, 3), 
+	(116,  7, 3), 
+	(116,  8, 3), 
+	(116,  9, 5), 
+	(117, 23, 3), 
+	(118,  1, 4), 
+	(118, 16, 1), 
+	(118,  3, 2), 
+	(119, 12, 4), 
+	(120, 18, 1), 
+	(121, 20, 1), 
+	(122, 18, 1), 
+	(123,  8, 2), 
+	(124, 22, 3), 
+	(124,  7, 5), 
+	(124, 16, 6), 
+	(124,  8, 1), 
+	(125, 16, 4), 
+	(125,  3, 4), 
+	(125,  6, 5), 
+	(125,  1, 2), 
+	(126,  3, 4), 
+	(127, 22, 2), 
+	(127, 21, 4), 
+	(127, 16, 5), 
+	(128, 16, 6), 
+	(129, 16, 4), 
+	(130,  8, 5), 
+	(130, 22, 4), 
+	(131,  6, 3), 
+	(132, 11, 3), 
+	(133,  2, 2), 
+	(134,  6, 4), 
+	(135,  3, 1), 
+	(136, 15, 4), 
+	(136, 17, 4), 
+	(136,  2, 3), 
+	(136, 11, 4), 
+	(137, 14, 3), 
+	(138, 18, 3), 
+	(139, 11, 3), 
+	(139, 18, 4), 
+	(139, 16, 1), 
+	(139, 17, 2), 
+	(140, 16, 4), 
+	(140,  6, 5), 
+	(141,  6, 4), 
+	(142, 21, 6), 
+	(142, 16, 2), 
+	(142, 17, 5), 
+	(142,  3, 5), 
+	(143, 18, 5), 
+	(143, 12, 2), 
+	(143, 16, 5), 
+	(143, 22, 6), 
+	(144,  3, 6), 
+	(145, 11, 6), 
+	(145, 23, 2), 
+	(146,  1, 3), 
+	(147,  2, 3), 
+	(148, 22, 5), 
+	(149,  6, 4), 
+	(149, 15, 4), 
+	(149, 22, 1), 
+	(150,  1, 4), 
+	(151, 20, 4), 
+	(152,  8, 5), 
+	(152, 17, 2), 
+	(153,  1, 1), 
+	(154, 23, 3), 
+	(155, 15, 5), 
+	(156, 15, 4), 
+	(157,  6, 2), 
+	(158,  1, 3), 
+	(159,  8, 4), 
+	(159,  7, 6), 
+	(159,  3, 4), 
+	(159, 23, 3), 
+	(160,  6, 6), 
+	(161,  6, 3), 
+	(161, 21, 5), 
+	(162,  7, 6), 
+	(163, 17, 5), 
+	(164, 21, 2), 
+	(165,  3, 3), 
+	(165,  8, 2), 
+	(165,  2, 1), 
+	(165, 15, 4), 
+	(166, 15, 4), 
+	(167,  1, 1), 
+	(167, 15, 4), 
+	(168,  1, 4), 
+	(169, 20, 2), 
+	(169, 14, 3), 
+	(170,  2, 1), 
+	(171, 20, 1), 
+	(171,  9, 5), 
+	(171, 14, 1), 
+	(171, 21, 4), 
+	(172,  3, 5), 
+	(172,  2, 2), 
+	(173, 12, 4), 
+	(173, 22, 1), 
+	(174, 22, 1), 
+	(175,  1, 3), 
+	(176, 12, 6), 
+	(177, 12, 1), 
+	(178, 12, 5), 
+	(179, 23, 2), 
+	(179,  8, 6), 
+	(179, 15, 3), 
+	(179,  7, 1), 
+	(180, 11, 6), 
+	(181,  9, 5), 
+	(181,  2, 2), 
+	(181, 22, 1), 
+	(181, 17, 2), 
+	(182,  2, 4), 
+	(183, 17, 3), 
+	(184, 15, 4), 
+	(185, 12, 3), 
+	(185, 17, 6), 
+	(186, 17, 3), 
+	(186,  7, 5), 
+	(186,  9, 6), 
+	(187,  9, 3), 
+	(188, 21, 5), 
+	(189,  6, 4), 
+	(189,  2, 4), 
+	(190,  8, 4), 
+	(190, 16, 3), 
+	(191,  3, 5), 
+	(192, 17, 3), 
+	(192,  1, 5), 
+	(192, 16, 4), 
+	(193, 21, 3), 
+	(193,  8, 2), 
+	(194, 14, 5), 
+	(195, 17, 3), 
+	(196,  6, 3), 
+	(196, 11, 5), 
+	(196,  8, 3), 
+	(196,  9, 6), 
+	(197,  6, 1), 
+	(198,  3, 4), 
+	(198, 23, 6), 
+	(198, 22, 2), 
+	(198, 21, 6), 
+	(199, 22, 6), 
+	(199, 20, 4), 
+	(199,  1, 4), 
+	(199, 15, 6), 
+	(200, 12, 4), 
+	(201,  3, 1), 
+	(202, 18, 6), 
+	(203, 21, 6), 
+	(203,  3, 2), 
+	(203, 14, 2), 
+	(203, 12, 4), 
+	(204, 17, 3), 
+	(204,  6, 6), 
+	(205, 18, 6), 
+	(205, 22, 4), 
+	(205, 14, 4), 
+	(206, 18, 6), 
+	(206, 16, 3), 
+	(207, 11, 3), 
+	(208,  6, 1), 
+	(208, 20, 1), 
+	(208, 12, 2), 
+	(208, 14, 5), 
+	(209,  6, 5), 
+	(210,  7, 1), 
+	(211, 12, 3), 
+	(212, 16, 1), 
+	(212, 18, 5), 
+	(212, 11, 4), 
+	(213, 14, 5), 
+	(213,  3, 3), 
+	(213,  1, 2), 
+	(214, 11, 2), 
+	(215, 17, 6), 
+	(216, 15, 5), 
+	(216, 18, 1), 
+	(216,  3, 3), 
+	(216,  7, 2), 
+	(217, 11, 1), 
+	(218, 15, 1), 
+	(218, 22, 3), 
+	(218,  1, 2), 
+	(218, 12, 1), 
+	(219,  6, 2), 
+	(220, 14, 3), 
+	(220,  2, 2), 
+	(220, 12, 6), 
+	(221,  6, 4), 
+	(221, 14, 3), 
+	(221, 18, 5), 
+	(222,  7, 3), 
+	(223, 16, 1), 
+	(224, 14, 3), 
+	(225, 11, 1), 
+	(226,  2, 5), 
+	(227, 17, 5), 
+	(228,  6, 6), 
+	(229,  1, 5), 
+	(230, 12, 2), 
+	(230,  6, 6), 
+	(230,  8, 6), 
+	(230, 14, 2), 
+	(231,  7, 5), 
+	(231,  1, 6), 
+	(231, 12, 6), 
+	(232, 16, 4), 
+	(232, 18, 1), 
+	(232, 12, 4), 
+	(232, 17, 6), 
+	(233, 20, 2), 
+	(233, 18, 6), 
+	(234, 15, 6), 
+	(234,  9, 2), 
+	(235, 14, 3), 
+	(236,  3, 3), 
+	(236, 17, 6), 
+	(236,  6, 2), 
+	(236,  7, 4), 
+	(237, 15, 6), 
+	(238,  9, 1), 
+	(239, 23, 3), 
+	(239,  1, 1), 
+	(239,  2, 2), 
+	(240,  3, 6), 
+	(240, 11, 6), 
+	(240, 12, 3), 
+	(240, 17, 2), 
+	(241,  6, 3), 
+	(242,  3, 4), 
+	(243,  7, 6), 
+	(244,  6, 4), 
+	(245,  1, 5), 
+	(245, 14, 6), 
+	(245, 15, 1), 
+	(246, 21, 1), 
+	(247, 20, 6), 
+	(248, 11, 3), 
+	(249, 20, 4), 
+	(249, 23, 6), 
+	(250, 23, 4), 
+	(251, 12, 4), 
+	(251, 22, 6), 
+	(252,  6, 5), 
+	(253, 14, 4), 
+	(254,  3, 4), 
+	(254, 15, 6), 
+	(254, 16, 4), 
+	(255,  2, 4), 
+	(256, 15, 5), 
+	(257, 20, 1), 
+	(258, 18, 6), 
+	(259,  9, 2), 
+	(260,  2, 6), 
+	(260,  8, 3), 
+	(260,  3, 3), 
+	(260, 15, 6), 
+	(261, 22, 4), 
+	(261,  8, 2), 
+	(261, 23, 4), 
+	(261,  3, 5), 
+	(262,  7, 3), 
+	(263,  1, 6), 
+	(264,  9, 3), 
+	(264, 18, 5), 
+	(264, 22, 6), 
+	(264, 23, 6), 
+	(265,  9, 6), 
+	(266, 15, 1), 
+	(266, 21, 5), 
+	(266, 12, 1), 
+	(266,  3, 1), 
+	(267, 20, 4), 
+	(268, 12, 2), 
+	(268, 15, 1), 
+	(269, 22, 1), 
+	(270,  8, 3), 
+	(270, 23, 1), 
+	(270,  1, 1), 
+	(270,  2, 5), 
+	(271, 23, 4), 
+	(272,  1, 1), 
+	(272, 20, 1), 
+	(272,  8, 4), 
+	(273, 12, 2), 
+	(274, 21, 5), 
+	(275, 14, 1), 
+	(275, 12, 4), 
+	(275, 17, 1), 
+	(276, 18, 2), 
+	(277, 17, 2), 
+	(278, 23, 2), 
+	(278,  9, 6), 
+	(279,  9, 3), 
+	(279, 18, 1), 
+	(279, 22, 1), 
+	(280, 11, 3), 
+	(281, 12, 2), 
+	(282, 12, 3), 
+	(282, 16, 6), 
+	(282,  1, 5), 
+	(283,  3, 2), 
+	(284, 12, 3), 
+	(285, 22, 3), 
+	(285, 18, 1), 
+	(286,  3, 3), 
+	(286,  9, 3), 
+	(286, 22, 1), 
+	(286, 17, 6), 
+	(287, 21, 5), 
+	(288, 15, 5), 
+	(289, 17, 5), 
+	(289, 12, 5), 
+	(290, 17, 1), 
+	(290, 22, 6), 
+	(290, 20, 5), 
+	(290, 23, 6), 
+	(291, 16, 6), 
+	(292, 23, 6), 
+	(292,  1, 1), 
+	(292, 11, 1), 
+	(292, 14, 2), 
+	(293, 23, 5), 
+	(294, 20, 5), 
+	(294, 18, 4), 
+	(294,  6, 3), 
+	(295, 22, 4), 
+	(296,  8, 1), 
+	(296,  2, 6), 
+	(297, 20, 3), 
+	(297, 21, 3), 
+	(298, 14, 4), 
+	(298,  8, 2), 
+	(298, 12, 4), 
+	(298,  9, 2), 
+	(299, 18, 2), 
+	(300,  9, 4), 
+	(301, 15, 6), 
+	(302, 21, 6), 
+	(303, 21, 3), 
+	(304,  8, 5), 
+	(304,  1, 4), 
+	(304, 18, 1), 
+	(305, 16, 5), 
+	(306, 15, 2), 
+	(306,  6, 5), 
+	(306,  2, 6), 
+	(306,  3, 5);

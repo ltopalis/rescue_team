@@ -1,0 +1,38 @@
+.cancelButton {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.cancelButton:hover,
+.cancelButton:disabled {
+    background-color: #c0392b;
+}
+
+#table-of-requests-offers td[rowspan] {
+    vertical-align: middle;
+}
+
+#table-of-requests-offers td.completed {
+    background-color: #90EE90;
+}
+
+#table-of-requests-offers td.canceled {
+    background-color: #F08080;
+}
+
+#table-of-requests-offers td.created {
+    background-color: #ADD8E6;
+}
+
+#table-of-requests-offers td.inTransition {
+    background-color: #FFFF99;
+}
