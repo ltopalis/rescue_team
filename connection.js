@@ -489,7 +489,7 @@ export async function cancelTaskFromCitizen(params) {
 }
 
 export async function createTask(params) {
-    let [response] = await db.query(`INSERT INTO UserOffersRequests(user, type) VALUES(?, ?)`, [params.user, params.type]);
+    const [response] = await db.query(`INSERT INTO UserOffersRequests(user, type) VALUES(?, ?)`, [params.user, params.type]);
 
     for (let prod of params.products)
         await db.query(`
@@ -497,4 +497,12 @@ export async function createTask(params) {
             VALUES (?,?,?)`, [response.insertId, prod.product, prod.amount]);
 
     return { status: 200 };
+}
+
+export async function getProductsCategories() {
+
+    const [response] = await db.query('SELECT ID, CATEGORY, PRODUCT_NAME, DETAIL_NAME, DETAIL_VALUE FROM PRODUCTS JOIN DETAILS_OF_PRODUCTS ON PRODUCT = ID');
+
+    return response;
+
 }

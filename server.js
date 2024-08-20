@@ -13,7 +13,7 @@ import {
     completeTask, updateWarehousePostition, initAdminMap,
     getAmountOfTasks, getAllProducts, createAnnouncement,
     getAnnouncements, getOffersRequests, cancelTaskFromCitizen,
-    createTask
+    createTask, getProductsCategories
 } from './connection.js'
 
 const PORT = 3000;
@@ -550,6 +550,34 @@ app.post('/citizen/createTask', async (req, res) => {
         res.status(200).send(response);
     }
 
+});
+
+app.get("/citizen/initRequestPage", async (req, res) => {
+    const response = await getProductsCategories();
+    const data = [];
+
+    for (let prod of response) {
+        const index = data.findIndex(product => product.ID == prod.ID);
+
+        if (index === -1)
+            data.push({
+                ID: prod.ID,
+                CATEGORY: prod.CATEGORY,
+                PRODUCT_NAME: prod.PRODUCT_NAME,
+                details: [{
+                    name: prod.DETAIL_NAME,
+                    value: prod.DETAIL_VALUE
+                }]
+
+            })
+        else
+            data[index].details.push({
+                name: prod.DETAIL_NAME,
+                value: prod.DETAIL_VALUE
+            })
+    }
+
+    res.status(200).send(data);
 });
 
 app.listen(PORT, () => {

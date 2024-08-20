@@ -17,6 +17,10 @@
     background-color: #c0392b;
 }
 
+.cancelButton:disabled {
+    cursor: default;
+}
+
 #table-of-requests-offers td[rowspan] {
     vertical-align: middle;
 }
