@@ -4,7 +4,7 @@
 }
 
 .card {
-    width: 15rem;
+    width: 16rem;
     height: 14rem;
     margin: 5px;
     /* background-color: #FFFBFF; */
@@ -21,7 +21,6 @@
 #tasksPanel {
     height: 70vh;
     overflow-y: auto;
-    /* Scroll if content overflows */
 }
 
 #controllers {

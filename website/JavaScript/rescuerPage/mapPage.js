@@ -50,10 +50,10 @@ async function init() {
                 user.position = data.myPos;
                 user.name = data.name;
                 user.username = data.username;
-                user.load = data.load;
-                user.currentTasks = data.currentTasks;
+                user.load = data.load || [];
+                user.currentTasks = data.currentTasks || [];
 
-                tasks = data.tasks;
+                tasks = data.tasks || [];
 
                 const activeTasks = [offersSwitch.checked ? 'Προσφορά' : null, requestsSwitch.checked ? 'Αίτηση' : null];
 
@@ -66,35 +66,14 @@ async function init() {
                     popupMsg += `x${l.amount} ${l.name}</br>`
                 markers.myPos.bindPopup(popupMsg);
 
-                for (let task of user.currentTasks) {
-                    if (activeTasks.includes(task.type)) {
-                        let newMarker = L.marker([task.location.lat, task.location.lng], {
-                            draggable: false, icon: new citizenIcon({
-                                iconUrl: (task.type == "Προσφορά" ? "../../icons/people-blue.png" : "../../icons/people-red.png")
-                            })
-                        }).addTo(map);
 
-                        let popupMsg = `
-                    Όνομα:      ${task.name}<br>
-                    Τηλέφωνο:   ${task.username}<br>
 
-                    Προϊόν:     `;
-                        for (let pr of task.products)
-                            popupMsg += `x${pr.amount} ${pr.name}, `;
-                        popupMsg += `</br>Αναλήφθηκε: ${task.acceptDate}`;
-
-                        newMarker.bindPopup(popupMsg);
-
-                        markers.currentTasks.push(newMarker);
-                    }
-                }
-
-                if (myTasksSwitch.checked) {
+                if (freeTasksSwitch.checked) {
 
                     for (let task of tasks) {
                         let newMarker = L.marker([task.location.lat, task.location.lng], {
                             draggable: false, icon: new citizenIcon({
-                                iconUrl: (task.type == "Προσφορά" ? "../../icons/people.png" : "../../icons/people-red.png")
+                                iconUrl: (task.type == "Προσφορά" ? "../../icons/people.png" : "../../icons/people-purple.png")
                             })
                         }).addTo(map);
 
@@ -109,6 +88,32 @@ async function init() {
                         newMarker.bindPopup(popupMsg);
 
                         markers.tasks.push(newMarker);
+                    }
+                }
+
+                if (myTasksSwitch.checked) {
+
+                    for (let task of user.currentTasks) {
+                        if (activeTasks.includes(task.type)) {
+                            let newMarker = L.marker([task.location.lat, task.location.lng], {
+                                draggable: false, icon: new citizenIcon({
+                                    iconUrl: (task.type == "Προσφορά" ? "../../icons/people-blue.png" : "../../icons/people-red.png")
+                                })
+                            }).addTo(map);
+
+                            let popupMsg = `
+                        Όνομα:      ${task.name}<br>
+                        Τηλέφωνο:   ${task.username}<br>
+    
+                        Προϊόν:     `;
+                            for (let pr of task.products)
+                                popupMsg += `x${pr.amount} ${pr.name}, `;
+                            popupMsg += `</br>Αναλήφθηκε: ${task.acceptDate}`;
+
+                            newMarker.bindPopup(popupMsg);
+
+                            markers.currentTasks.push(newMarker);
+                        }
                     }
                 }
 
@@ -315,16 +320,16 @@ let user = {
     loadProducts: [],
     currentTasks: [{ id: 1, name: "Μπάμπης", username: "6987452015", location: { lat: 38.64776165212098, lng: 23.12625890968818 }, acceptDate: "2024-07-30 15:40:34", date: "2024-07-30 15:35:34", products: [{ id: 5, name: "νερό", amount: 5 }], type: "Προσφορά" },
     { id: 2, name: "Μάκης", username: "6945128443", location: { lat: 38.24673484881786, lng: 23.400586171562672 }, acceptDate: "2024-07-30 12:48:44", date: "2024-07-30 12:38:44", products: [{ id: 3, name: "Depon", amount: 2 }], type: "Αίτηση" },
-    // { id: 3, name: "Μήτσος", username: "6954214530", location: { lat: 38.54776165212098, lng: 23.02625890968818 }, acceptDate: "2024-07-30 11:03:14", date: "2024-07-30 10:53:14", products: [{ id: 2, name: "Panmigran ", amount: 8 }], type: "Προσφορά" },
+    { id: 3, name: "Μήτσος", username: "6954214530", location: { lat: 38.54776165212098, lng: 23.02625890968818 }, acceptDate: "2024-07-30 11:03:14", date: "2024-07-30 10:53:14", products: [{ id: 2, name: "Panmigran ", amount: 8 }], type: "Προσφορά" },
     { id: 4, name: "Κατερίνα", username: "6957432019", location: { lat: 38.4169823256788, lng: 23.081978669454646 }, acceptDate: "2024-07-28 07:33:02", date: "2024-07-28 07:23:02", products: [{ id: 6, name: "Ζάχαρη", amount: 25 }], type: "Αίτηση" }
     ]
 };
 
 let tasks = [
-    { id: 5, name: "Σπύρος", username: "6985213647", location: { lat: 37.77718717873785, lng: 23.931768977728874 }, date: "2024-07-30 15:35:34", products: { id: 9, name: "ψωμί", amount: 3 }, type: "Προσφορά" },
-    { id: 6, name: "Σωτήρης", username: "6921478305", location: { lat: 38.77718715873785, lng: 23.951568977728874 }, date: "2024-07-30 15:35:34", products: { id: 10, name: "γάζες", amount: 6 }, type: "Αίτηση" },
-    { id: 7, name: "Πάρης", username: "6985223471", location: { lat: 36.77708713873785, lng: 23.891548977728874 }, date: "2024-07-30 15:35:34", products: { id: 8, name: "σιρόπι για τον βήχα", amount: 2 }, type: "Προσφορά" },
-    { id: 8, name: "Άκης", username: "6901230587", location: { lat: 37.77774515873785, lng: 23.501486977728874 }, date: "2024-07-30 15:35:34", products: { id: 4, name: "πάνες", amount: 1 }, type: "Προσφορά" },
+    { id: 5, name: "Σπύρος", username: "6985213647", location: { lat: 37.77718717873785, lng: 23.931768977728874 }, date: "2024-07-30 15:35:34", products: [{ id: 9, name: "ψωμί", amount: 3 }], type: "Προσφορά" },
+    { id: 6, name: "Σωτήρης", username: "6921478305", location: { lat: 38.77718715873785, lng: 23.951568977728874 }, date: "2024-07-30 15:35:34", products: [{ id: 10, name: "γάζες", amount: 6 }], type: "Αίτηση" },
+    { id: 7, name: "Πάρης", username: "6985223471", location: { lat: 36.77708713873785, lng: 23.891548977728874 }, date: "2024-07-30 15:35:34", products: [{ id: 8, name: "σιρόπι για τον βήχα", amount: 2 }], type: "Προσφορά" },
+    { id: 8, name: "Άκης", username: "6901230587", location: { lat: 37.77774515873785, lng: 23.501486977728874 }, date: "2024-07-30 15:35:34", products: [{ id: 4, name: "πάνες", amount: 1 }], type: "Προσφορά" },
 ]
 
 let markers = {
@@ -477,7 +482,7 @@ function completeButtonClicked(id) {
     const tastIndex = user.currentTasks.findIndex(t => t.id == id);
     const task = user.currentTasks[tastIndex];
 
-    console.log(task)
+    // console.log(task)
 
     const isSubset = (a, b) => {
         return a.every(aItem => {
@@ -496,6 +501,8 @@ function completeButtonClicked(id) {
             }
         }).then((response) => {
             if (response.status == 200) {
+
+                console.log(task)
 
                 for (let m of markers.currentTasks)
                     map.removeLayer(m);
