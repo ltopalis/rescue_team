@@ -1,0 +1,185 @@
+{
+    "code": 1,
+    "message": "Retrieved successfully",
+    "categories": [
+        {
+            "id": "102",
+            "category_name": "Rescue Equipment"
+        },
+        {
+            "id": "205",
+            "category_name": "First Aid Tools"
+        },
+        {
+            "id": "309",
+            "category_name": "Shelters"
+        }
+    ],
+    "items": [
+        {
+            "id": "512",
+            "name": "Helmet",
+            "category": "102",
+            "details": [
+                {
+                    "detail_name": "Material",
+                    "detail_value": "Plastic"
+                }
+            ]
+        },
+        {
+            "id": "613",
+            "name": "Rope",
+            "category": "102",
+            "details": [
+                {
+                    "detail_name": "Length",
+                    "detail_value": "50 meters"
+                }
+            ]
+        },
+        {
+            "id": "724",
+            "name": "Flashlight",
+            "category": "102",
+            "details": [
+                {
+                    "detail_name": "Battery Type",
+                    "detail_value": "AA"
+                }
+            ]
+        },
+        {
+            "id": "835",
+            "name": "Gloves",
+            "category": "102",
+            "details": [
+                {
+                    "detail_name": "Size",
+                    "detail_value": "Large"
+                }
+            ]
+        },
+        {
+            "id": "946",
+            "name": "Rescue Vest",
+            "category": "102",
+            "details": [
+                {
+                    "detail_name": "Color",
+                    "detail_value": "Orange"
+                }
+            ]
+        },
+        {
+            "id": "1035",
+            "name": "Bandage",
+            "category": "205",
+            "details": [
+                {
+                    "detail_name": "Length",
+                    "detail_value": "5 meters"
+                }
+            ]
+        },
+        {
+            "id": "1146",
+            "name": "First Aid Scissors",
+            "category": "205",
+            "details": [
+                {
+                    "detail_name": "Material",
+                    "detail_value": "Stainless Steel"
+                }
+            ]
+        },
+        {
+            "id": "1257",
+            "name": "Disinfectant",
+            "category": "205",
+            "details": [
+                {
+                    "detail_name": "Volume",
+                    "detail_value": "500 ml"
+                }
+            ]
+        },
+        {
+            "id": "1368",
+            "name": "Thermometer",
+            "category": "205",
+            "details": [
+                {
+                    "detail_name": "Type",
+                    "detail_value": "Digital"
+                }
+            ]
+        },
+        {
+            "id": "1479",
+            "name": "Emergency Mask",
+            "category": "205",
+            "details": [
+                {
+                    "detail_name": "Type",
+                    "detail_value": "N95"
+                }
+            ]
+        },
+        {
+            "id": "1580",
+            "name": "Tent",
+            "category": "309",
+            "details": [
+                {
+                    "detail_name": "Capacity",
+                    "detail_value": "4 people"
+                }
+            ]
+        },
+        {
+            "id": "1691",
+            "name": "Sleeping Bag",
+            "category": "309",
+            "details": [
+                {
+                    "detail_name": "Temperature Rating",
+                    "detail_value": "-5°C"
+                }
+            ]
+        },
+        {
+            "id": "1702",
+            "name": "Camp Chair",
+            "category": "309",
+            "details": [
+                {
+                    "detail_name": "Weight Capacity",
+                    "detail_value": "120 kg"
+                }
+            ]
+        },
+        {
+            "id": "1813",
+            "name": "Portable Cooler",
+            "category": "309",
+            "details": [
+                {
+                    "detail_name": "Capacity",
+                    "detail_value": "30 liters"
+                }
+            ]
+        },
+        {
+            "id": "1924",
+            "name": "Waterproof Cover",
+            "category": "309",
+            "details": [
+                {
+                    "detail_name": "Dimensions",
+                    "detail_value": "3x4 meters"
+                }
+            ]
+        }
+    ]
+}
